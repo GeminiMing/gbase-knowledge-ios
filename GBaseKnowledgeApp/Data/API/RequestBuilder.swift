@@ -1,0 +1,70 @@
+import Foundation
+
+public protocol RequestInterceptable {
+    func willSend(_ request: URLRequest) async -> URLRequest
+    func didReceive(_ data: Data?, response: URLResponse?) async
+    func didFail(_ error: Error, request: URLRequest) async
+}
+
+public struct RequestBuilder {
+    private let config: APIConfiguration
+    private let tokenProvider: () async throws -> AuthSession?
+
+    public init(config: APIConfiguration,
+                tokenProvider: @escaping () async throws -> AuthSession?) {
+        self.config = config
+        self.tokenProvider = tokenProvider
+    }
+
+    public func makeRequest(endpoint: Endpoint,
+                            body: Encodable? = nil,
+                            headers: [String: String] = [:]) async throws -> URLRequest {
+        let baseURL = endpoint.baseURLOverride ?? config.environment.baseURL
+        var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false)
+        if !endpoint.queryItems.isEmpty {
+            components?.queryItems = endpoint.queryItems
+        }
+
+        guard let url = components?.url else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url, timeoutInterval: endpoint.timeout)
+        request.httpMethod = endpoint.method.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("true", forHTTPHeaderField: "Bench-X-JsonOutputResult-Data")
+
+        for (key, value) in headers {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+
+        if endpoint.requiresAuth, let session = try await tokenProvider() {
+            request.setValue("\(session.tokenType) \(session.accessToken)", forHTTPHeaderField: "Authorization")
+        }
+
+        if let body {
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            do {
+                request.httpBody = try encoder.encode(AnyEncodable(body))
+            } catch {
+                throw APIError.encodingFailed(error)
+            }
+        }
+
+        return request
+    }
+}
+
+private struct AnyEncodable: Encodable {
+    private let encodeClosure: (Encoder) throws -> Void
+
+    init<T: Encodable>(_ value: T) {
+        self.encodeClosure = value.encode(to:)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try encodeClosure(encoder)
+    }
+}
+

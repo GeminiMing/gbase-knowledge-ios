@@ -1,0 +1,75 @@
+/* Common */
+"common.ok" = "确定";
+"common.cancel" = "取消";
+"common.error" = "错误";
+"common.success" = "成功";
+"common.loading" = "加载中...";
+"common.back" = "返回";
+
+/* Login */
+"login.title" = "登录";
+"login.email" = "邮箱";
+"login.password" = "密码";
+"login.button" = "登录";
+"login.welcome_back" = "欢迎回来";
+"login.email_placeholder" = "your@email.com";
+"login.password_placeholder" = "Enter password";
+
+/* Profile */
+"profile.title" = "我的";
+"profile.basic_info" = "基本信息";
+"profile.name" = "姓名";
+"profile.email" = "邮箱";
+"profile.default_company" = "默认公司";
+"profile.company_id" = "公司编号";
+"profile.company_username" = "企业用户名";
+"profile.language" = "语言";
+"profile.not_logged_in" = "未登录";
+"profile.clear_cache" = "清除本地缓存";
+"profile.logout" = "退出登录";
+"profile.alert_title" = "提示";
+"profile.cache_cleared" = "已清除本地缓存";
+"profile.dependency_not_injected" = "依赖未注入";
+
+/* Projects */
+"projects.title" = "项目列表";
+"projects.items" = "条目";
+"projects.temporary_meeting" = "临时会议";
+"projects.search_placeholder" = "搜索项目...";
+"projects.empty_title" = "暂无项目";
+"projects.search_empty_title" = "未找到匹配的项目";
+"projects.search_empty_message" = "尝试使用其他关键词搜索";
+"project_role.owner" = "所有者";
+"project_role.contributor" = "贡献者";
+"project_role.sharee" = "分享者";
+
+/* Recorder */
+"recorder.back" = "返回";
+"recorder.meeting_id" = "会议编号：";
+"recorder.no_recordings" = "暂无录音";
+"recorder.start_recording_hint" = "点击下方按钮开始录音";
+"recorder.preparing" = "准备录音";
+"recorder.retry_upload" = "重试上传";
+"recorder.delete" = "删除";
+"recorder.upload_failed" = "上传失败";
+"recorder.upload_progress" = "%d%%";
+"recorder.processing" = "处理中...";
+"recorder.uploading" = "上传中...";
+"recorder.dependency_not_injected" = "依赖未注入";
+"recorder.meeting_not_prepared" = "未准备会议，请先在项目列表选择项目";
+"recorder.microphone_permission_denied" = "麦克风权限未授权";
+"recorder.unknown_error" = "未知错误";
+
+/* Upload Status */
+"upload_status.pending" = "待上传";
+"upload_status.uploading" = "上传中";
+"upload_status.completed" = "已完成";
+"upload_status.failed" = "上传失败";
+
+/* Tab Bar */
+"tab.projects" = "项目";
+"tab.profile" = "我的";
+
+/* Waveform */
+"waveform.accessibility_label" = "录音波形";
+

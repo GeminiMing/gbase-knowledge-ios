@@ -6,6 +6,25 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		18D5F3AB2EB45EE3006E2B5D /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 18D5F3AA2EB45EE3006E2B5D /* RealmSwift */; };
+		18D5F3AC2EB45EE3006E2B5D /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 18D5F3AA2EB45EE3006E2B5D /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		18D5F3AD2EB45EE3006E2B5D /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				18D5F3AC2EB45EE3006E2B5D /* RealmSwift in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		18D5F30F2EB436A1006E2B5D /* GBaseKnowledgeApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GBaseKnowledgeApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18D5F3AB2EB45EE3006E2B5D /* RealmSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				18D5F3112EB436A1006E2B5D /* GBaseKnowledgeApp */,
+				18D5F3A92EB45EE2006E2B5D /* Frameworks */,
 				18D5F3102EB436A1006E2B5D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,6 +66,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		18D5F3A92EB45EE2006E2B5D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -55,6 +83,7 @@
 				18D5F30B2EB436A1006E2B5D /* Sources */,
 				18D5F30C2EB436A1006E2B5D /* Frameworks */,
 				18D5F30D2EB436A1006E2B5D /* Resources */,
+				18D5F3AD2EB45EE3006E2B5D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -65,6 +94,7 @@
 			);
 			name = GBaseKnowledgeApp;
 			packageProductDependencies = (
+				18D5F3AA2EB45EE3006E2B5D /* RealmSwift */,
 			);
 			productName = GBaseKnowledgeApp;
 			productReference = 18D5F30F2EB436A1006E2B5D /* GBaseKnowledgeApp.app */;
@@ -91,9 +121,14 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				ja,
 			);
 			mainGroup = 18D5F3062EB436A1006E2B5D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				18D5F3A82EB44A95006E2B5D /* XCLocalSwiftPackageReference "../realm-swift-master" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 18D5F3102EB436A1006E2B5D /* Products */;
 			projectDirPath = "";
@@ -246,10 +281,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7J39XLV4M8;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -288,10 +325,12 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7J39XLV4M8;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -345,6 +384,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		18D5F3A82EB44A95006E2B5D /* XCLocalSwiftPackageReference "../realm-swift-master" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../realm-swift-master";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		18D5F3AA2EB45EE3006E2B5D /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18D5F3A82EB44A95006E2B5D /* XCLocalSwiftPackageReference "../realm-swift-master" */;
+			productName = RealmSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 18D5F3072EB436A1006E2B5D /* Project object */;
 }

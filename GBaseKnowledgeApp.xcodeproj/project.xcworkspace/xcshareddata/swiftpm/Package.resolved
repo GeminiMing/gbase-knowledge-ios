@@ -1,0 +1,15 @@
+{
+  "originHash" : "550d73a6912e76ffd2caae335cc7b36d0911fea109b053a2fdbab034dafb0603",
+  "pins" : [
+    {
+      "identity" : "realm-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/realm/realm-core.git",
+      "state" : {
+        "revision" : "cccb3ca9e26ec452a29f2f0d4050d1e38b8a3d43",
+        "version" : "14.14.0"
+      }
+    }
+  ],
+  "version" : 3
+}

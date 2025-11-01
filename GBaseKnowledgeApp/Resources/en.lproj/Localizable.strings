@@ -1,0 +1,75 @@
+/* Common */
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.error" = "Error";
+"common.success" = "Success";
+"common.loading" = "Loading...";
+"common.back" = "Back";
+
+/* Login */
+"login.title" = "Sign In";
+"login.email" = "Email";
+"login.password" = "Password";
+"login.button" = "Sign In";
+"login.welcome_back" = "Welcome back";
+"login.email_placeholder" = "your@email.com";
+"login.password_placeholder" = "Enter password";
+
+/* Profile */
+"profile.title" = "My";
+"profile.basic_info" = "Basic Information";
+"profile.name" = "Name";
+"profile.email" = "Email";
+"profile.default_company" = "Default Company";
+"profile.company_id" = "Company ID";
+"profile.company_username" = "Company Username";
+"profile.language" = "Language";
+"profile.not_logged_in" = "Not Logged In";
+"profile.clear_cache" = "Clear Local Cache";
+"profile.logout" = "Logout";
+"profile.alert_title" = "Notice";
+"profile.cache_cleared" = "Local cache cleared";
+"profile.dependency_not_injected" = "Dependency not injected";
+
+/* Projects */
+"projects.title" = "Projects";
+"projects.items" = "Items";
+"projects.temporary_meeting" = "Temporary Meeting";
+"projects.search_placeholder" = "Search projects...";
+"projects.empty_title" = "No Projects";
+"projects.search_empty_title" = "No matching projects found";
+"projects.search_empty_message" = "Try searching with different keywords";
+"project_role.owner" = "Owner";
+"project_role.contributor" = "Contributor";
+"project_role.sharee" = "Sharee";
+
+/* Recorder */
+"recorder.back" = "Back";
+"recorder.meeting_id" = "Meeting ID: ";
+"recorder.no_recordings" = "No Recordings";
+"recorder.start_recording_hint" = "Tap the button below to start recording";
+"recorder.preparing" = "Ready to Record";
+"recorder.retry_upload" = "Retry Upload";
+"recorder.delete" = "Delete";
+"recorder.upload_failed" = "Upload Failed";
+"recorder.upload_progress" = "%d%%";
+"recorder.processing" = "Processing...";
+"recorder.uploading" = "Uploading...";
+"recorder.dependency_not_injected" = "Dependency not injected";
+"recorder.meeting_not_prepared" = "Meeting not prepared. Please select a project first";
+"recorder.microphone_permission_denied" = "Microphone permission denied";
+"recorder.unknown_error" = "Unknown error";
+
+/* Upload Status */
+"upload_status.pending" = "Pending";
+"upload_status.uploading" = "Uploading";
+"upload_status.completed" = "Completed";
+"upload_status.failed" = "Failed";
+
+/* Tab Bar */
+"tab.projects" = "Projects";
+"tab.profile" = "My";
+
+/* Waveform */
+"waveform.accessibility_label" = "Recording Waveform";
+
