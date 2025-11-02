@@ -150,6 +150,7 @@ public struct DIContainer {
                            companyManager: companyManager)
     }
 
+#if DEBUG
     public static var preview: DIContainer {
         let appState = AppState()
         let tokenStore = InMemoryTokenStore()
@@ -177,6 +178,12 @@ public struct DIContainer {
                            networkMonitor: .shared,
                            companyManager: companyManager)
     }
+#else
+    // Release 模式下提供一个fallback（实际上 Preview 不会在 Release 模式下使用）
+    public static var preview: DIContainer {
+        return .bootstrap()
+    }
+#endif
 }
 
 private final class UnauthorizedRelay {
@@ -192,7 +199,11 @@ private final class UnauthorizedRelay {
 }
 
 private struct DIContainerKey: EnvironmentKey {
+#if DEBUG
     static var defaultValue: DIContainer = .preview
+#else
+    static var defaultValue: DIContainer = .bootstrap()
+#endif
 }
 
 public extension EnvironmentValues {
