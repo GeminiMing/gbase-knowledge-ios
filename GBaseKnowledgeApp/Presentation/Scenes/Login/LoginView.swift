@@ -12,13 +12,6 @@ struct LoginView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    // 顶部标题
-                    Text(LocalizedStringKey.loginTitle.localized)
-                        .font(.system(.largeTitle, weight: .bold))
-                        .foregroundColor(.primary)
-                        .padding(.top, 60)
-                        .padding(.bottom, 40)
-
                     // Logo 和应用名称区域
                     VStack(spacing: 12) {
                         Image("Logo")
@@ -36,6 +29,7 @@ struct LoginView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
+                    .padding(.top, 80)
                     .padding(.bottom, 48)
 
                     // 输入表单卡片
@@ -52,6 +46,9 @@ struct LoginView: View {
                                 .textContentType(.username)
                                 .keyboardType(.emailAddress)
                                 .autocapitalization(.none)
+                                .autocorrectionDisabled()
+                                .disableAutocorrection(true)
+                                .textInputAutocapitalization(.never)
                                 .font(.body)
                                 .padding(.horizontal, 16)
                                 .padding(.bottom, 16)
@@ -72,10 +69,16 @@ struct LoginView: View {
                                 if showPassword {
                                     TextField(LocalizedStringKey.loginPasswordPlaceholder.localized, text: $viewModel.password)
                                         .textContentType(.password)
+                                        .autocorrectionDisabled()
+                                        .disableAutocorrection(true)
+                                        .textInputAutocapitalization(.never)
                                         .font(.body)
                                 } else {
                                     SecureField(LocalizedStringKey.loginPasswordPlaceholder.localized, text: $viewModel.password)
                                         .textContentType(.password)
+                                        .autocorrectionDisabled()
+                                        .disableAutocorrection(true)
+                                        .textInputAutocapitalization(.never)
                                         .font(.body)
                                 }
 
@@ -112,22 +115,31 @@ struct LoginView: View {
                             await viewModel.login()
                         }
                     }) {
-                        HStack {
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(.circular)
-                                    .tint(.white)
-                            } else {
-                                Text(LocalizedStringKey.loginButton.localized)
-                                    .font(.system(.body, weight: .semibold))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(
+                                    viewModel.isLoading || viewModel.email.isEmpty || viewModel.password.isEmpty
+                                        ? Color.gray.opacity(0.3)
+                                        : Color.black
+                                )
+                                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                            
+                            HStack {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .tint(.white)
+                                } else {
+                                    Text(LocalizedStringKey.loginButton.localized)
+                                        .font(.system(.body, weight: .semibold))
+                                        .foregroundColor(.white)
+                                }
                             }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
                         }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .foregroundColor(.white)
-                        .background(Color(.label))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
+                    .buttonStyle(.plain)
                     .disabled(viewModel.isLoading || viewModel.email.isEmpty || viewModel.password.isEmpty)
                     .padding(.horizontal, 24)
                     .padding(.bottom, 32)

@@ -9,6 +9,7 @@ struct ProfileView: View {
         NavigationView {
             List {
                 userSection
+                companySection
 
                 Section {
                     Button {
@@ -56,22 +57,24 @@ struct ProfileView: View {
             Section(header: Text(LocalizedStringKey.profileBasicInfo.localized)) {
                 profileRow(icon: "person.fill", title: LocalizedStringKey.profileName.localized, value: context.user.name)
                 profileRow(icon: "envelope.fill", title: LocalizedStringKey.profileEmail.localized, value: context.user.email)
-                if !context.user.defaultCompanyId.isEmpty {
-                    profileRow(icon: "building.2.fill", title: LocalizedStringKey.profileDefaultCompany.localized, value: context.user.defaultCompanyId)
-                }
-                if !context.company.companyId.isEmpty {
-                    profileRow(icon: "number", title: LocalizedStringKey.profileCompanyId.localized, value: context.company.companyId)
-                }
                 if !context.company.userName.isEmpty {
                     profileRow(icon: "person.badge.shield.checkmark", title: LocalizedStringKey.profileCompanyUsername.localized, value: context.company.userName)
                 }
-                profileRow(icon: "globe", title: LocalizedStringKey.profileLanguage.localized, value: context.user.language)
             }
         } else {
             Section {
                 Text(LocalizedStringKey.profileNotLoggedIn.localized)
                     .foregroundColor(.secondary)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var companySection: some View {
+        Section(header: Text("公司信息")) {
+            CurrentCompanyCard(companyManager: container.companyManager)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
         }
     }
 

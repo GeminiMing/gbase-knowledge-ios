@@ -23,6 +23,7 @@ public struct DIContainer {
     public let recordingLocalStore: RecordingLocalStore
     public let tokenStore: TokenStore
     public let networkMonitor: NetworkMonitor
+    public let companyManager: CompanyManager
 
     public init(appState: AppState,
                 loginUseCase: LoginUseCase,
@@ -42,7 +43,8 @@ public struct DIContainer {
                 recordingUploadService: RecordingUploadServiceType,
                 recordingLocalStore: RecordingLocalStore,
                 tokenStore: TokenStore,
-                networkMonitor: NetworkMonitor) {
+                networkMonitor: NetworkMonitor,
+                companyManager: CompanyManager) {
         self.appState = appState
         self.loginUseCase = loginUseCase
         self.refreshTokenUseCase = refreshTokenUseCase
@@ -62,6 +64,7 @@ public struct DIContainer {
         self.recordingLocalStore = recordingLocalStore
         self.tokenStore = tokenStore
         self.networkMonitor = networkMonitor
+        self.companyManager = companyManager
     }
 
     public static func bootstrap(environment: APIConfiguration.Environment = .development) -> DIContainer {
@@ -121,6 +124,10 @@ public struct DIContainer {
                                                             finishUseCase: finishRecordingUploadUseCase,
                                                             fileStorageService: fileStorageService)
 
+        // Create CompanyManager on main actor
+        let companyAPIService = CompanyAPIService(baseURL: config.environment.authBaseURL.absoluteString)
+        let companyManager = CompanyManager(apiService: companyAPIService)
+
         return DIContainer(appState: appState,
                            loginUseCase: loginUseCase,
                            refreshTokenUseCase: refreshUseCase,
@@ -139,13 +146,16 @@ public struct DIContainer {
                            recordingUploadService: recordingUploadService,
                            recordingLocalStore: recordingLocalStore,
                            tokenStore: tokenStore,
-                           networkMonitor: .shared)
+                           networkMonitor: .shared,
+                           companyManager: companyManager)
     }
 
     public static var preview: DIContainer {
         let appState = AppState()
         let tokenStore = InMemoryTokenStore()
         let mockUseCase = MockAuthUseCase()
+        let companyAPIService = CompanyAPIService()
+        let companyManager = CompanyManager(apiService: companyAPIService)
         return DIContainer(appState: appState,
                            loginUseCase: mockUseCase,
                            refreshTokenUseCase: mockUseCase,
@@ -164,7 +174,8 @@ public struct DIContainer {
                            recordingUploadService: MockRecordingUploadService(),
                            recordingLocalStore: MockRecordingLocalStore(),
                            tokenStore: tokenStore,
-                           networkMonitor: .shared)
+                           networkMonitor: .shared,
+                           companyManager: companyManager)
     }
 }
 

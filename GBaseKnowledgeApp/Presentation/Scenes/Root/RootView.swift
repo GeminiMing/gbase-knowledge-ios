@@ -34,6 +34,9 @@ struct RootView: View {
             await MainActor.run {
                 container.appState.update(authContext: context)
             }
+
+            // 初始化公司信息
+            await container.companyManager.initialize()
         } catch {
             await MainActor.run {
                 container.appState.markUnauthenticated()

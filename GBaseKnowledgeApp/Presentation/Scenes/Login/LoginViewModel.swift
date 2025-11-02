@@ -36,6 +36,9 @@ final class LoginViewModel: ObservableObject {
         do {
             let context = try await container.loginUseCase.execute(email: email, password: password)
             container.appState.update(authContext: context)
+
+            // 登录成功后初始化公司信息
+            await container.companyManager.initialize()
         } catch {
             errorMessage = error.localizedDescription
         }

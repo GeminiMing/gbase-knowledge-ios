@@ -90,8 +90,10 @@ struct ProjectRecorderView: View {
             viewModel.prepare(for: project, meeting: meeting)
         }
         .onDisappear {
+            // 只在停止播放，不停止录音
+            // 录音应该在后台继续运行
             container.audioPlayerService.stop()
-            container.audioRecorderService.cancelRecording(delete: false)
+            // 注意：不在这里调用 cancelRecording，因为切换tab不应该停止录音
         }
     }
 

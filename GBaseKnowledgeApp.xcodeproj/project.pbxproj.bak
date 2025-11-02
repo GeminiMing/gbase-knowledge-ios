@@ -29,22 +29,9 @@
 		18D5F30F2EB436A1006E2B5D /* GBaseKnowledgeApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GBaseKnowledgeApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		18D5FA5C2EB7DD4A006E2B5D /* Exceptions for "GBaseKnowledgeApp" folder in "GBaseKnowledgeApp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 18D5F30E2EB436A1006E2B5D /* GBaseKnowledgeApp */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		18D5F3112EB436A1006E2B5D /* GBaseKnowledgeApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				18D5FA5C2EB7DD4A006E2B5D /* Exceptions for "GBaseKnowledgeApp" folder in "GBaseKnowledgeApp" target */,
-			);
 			path = GBaseKnowledgeApp;
 			sourceTree = "<group>";
 		};
@@ -299,7 +286,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = GBaseKnowledgeApp/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -346,7 +332,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = GBaseKnowledgeApp/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

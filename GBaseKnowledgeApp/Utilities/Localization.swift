@@ -28,12 +28,12 @@ extension String {
         
         // 尝试多种路径加载本地化文件
         let possiblePaths = [
-            // 标准路径：直接在 .lproj 文件夹中
-            Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: lprojName),
-            // 在 Resources 子文件夹中
-            Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: "Resources/\(lprojName).lproj"),
-            // 使用完整路径
+            // 标准路径：直接在 .lproj 文件夹中（iOS 标准位置）
             Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: "\(lprojName).lproj"),
+            // 直接使用语言代码（不带 .lproj）
+            Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: lprojName),
+            // 在 Resources 子文件夹中（备用）
+            Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: "Resources/\(lprojName).lproj"),
         ]
         
         // 尝试从对应的语言文件夹加载
@@ -47,6 +47,7 @@ extension String {
         
         // 如果还是找不到，尝试 Base.lproj 作为后备
         let basePaths = [
+            Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: "Base.lproj"),
             Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: "Base"),
             Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: "Resources/Base.lproj"),
         ]

@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import AVFAudio
 import QuartzCore
+import UIKit
 
 public protocol AudioRecorderServiceDelegate: AnyObject {
     func recorderDidUpdate(duration: TimeInterval, level: Float)
@@ -14,7 +15,10 @@ public final class AudioRecorderService: NSObject {
 
     private var recorder: AVAudioRecorder?
     private var displayLink: CADisplayLink?
+    private var timer: Timer?
     private var startDate: Date?
+    private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
+    private var checkCount = 0
     private let settings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatLinearPCM),
         AVSampleRateKey: 44_100,
@@ -27,6 +31,11 @@ public final class AudioRecorderService: NSObject {
 
     public override init() {
         super.init()
+        setupNotifications()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     public func requestPermission() async -> Bool {
@@ -54,16 +63,37 @@ public final class AudioRecorderService: NSObject {
 
         if recorder?.record() == true {
             startDate = Date()
+            beginBackgroundTask()
             activateDisplayLink()
+            activateTimer()
+
+            // 启动 Live Activity（iOS 16.1+）
+            // 注意：需要先在 Xcode 中添加 RecordingLiveActivity.swift 文件
+            // if #available(iOS 16.1, *) {
+            //     RecordingLiveActivityService.shared.start(title: "语音录音")
+            // }
         } else {
             throw RecorderError.failedToStart
         }
     }
 
     public func stopRecording() {
+        // 获取最终时长
+        let finalDuration = recorder?.currentTime ?? 0
+
         recorder?.stop()
         recorder = nil
+        endBackgroundTask()
         deactivateDisplayLink()
+        deactivateTimer()
+
+        // 结束 Live Activity（iOS 16.1+）
+        // if #available(iOS 16.1, *) {
+        //     RecordingLiveActivityService.shared.finish(duration: finalDuration)
+        // }
+
+        // 注意：不在这里停用音频会话，因为可能还有其他音频操作
+        // 让系统自动管理会话生命周期
     }
 
     public func cancelRecording(delete: Bool = true) {
@@ -73,60 +103,304 @@ public final class AudioRecorderService: NSObject {
             recorder.deleteRecording()
         }
         self.recorder = nil
+        endBackgroundTask()
         deactivateDisplayLink()
+        deactivateTimer()
+
+        // 停止 Live Activity（iOS 16.1+）
+        // if #available(iOS 16.1, *) {
+        //     RecordingLiveActivityService.shared.stop()
+        // }
     }
 
     private func configureSession() throws {
         let session = AVAudioSession.sharedInstance()
-        var options: AVAudioSession.CategoryOptions = [.duckOthers]
-        if #available(iOS 10.0, *) {
-            options.insert(.allowBluetoothA2DP)
-            options.insert(.allowBluetoothHFP)
-        } else {
-            options.insert(.allowBluetooth)
-        }
 
+        // 使用 .playAndRecord 是最可靠的方式
+        // .playAndRecord + UIBackgroundModes: audio 可以实现后台录音
+        let options: AVAudioSession.CategoryOptions = [
+            .defaultToSpeaker,      // 默认使用扬声器
+            .allowBluetooth,        // 允许蓝牙设备
+            .allowBluetoothA2DP     // 允许高质量蓝牙音频
+        ]
+
+        // 配置音频会话 - 使用 .default mode 最稳定
         try session.setCategory(.playAndRecord, mode: .default, options: options)
-        try session.setActive(true)
+        print("✅ 音频会话配置成功 - .playAndRecord category")
+
+        // 激活会话
+        do {
+            try session.setActive(true, options: [.notifyOthersOnDeactivation])
+            print("✅ 音频会话激活成功 - 支持后台录音")
+        } catch {
+            print("⚠️ 会话激活失败: \(error.localizedDescription)")
+            // 尝试先停用再激活
+            do {
+                try session.setActive(false, options: [])
+                try session.setActive(true, options: [.notifyOthersOnDeactivation])
+                print("✅ 音频会话强制激活成功")
+            } catch {
+                try session.setActive(true)
+                print("⚠️ 音频会话激活（无选项）")
+            }
+        }
     }
 
+    private func setupNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+        
+        // 监听音频会话中断
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioSessionInterruption),
+            name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance()
+        )
+        
+        // 监听音频会话路由变化
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioSessionRouteChange),
+            name: AVAudioSession.routeChangeNotification,
+            object: AVAudioSession.sharedInstance()
+        )
+    }
+    
+    @objc private func applicationDidEnterBackground() {
+        guard let recorder = recorder else { return }
+
+        print("📱 应用进入后台，检查录音状态...")
+
+        // 验证录音器仍在运行
+        if !recorder.isRecording {
+            print("⚠️ 录音器已停止，尝试重新启动...")
+            // 如果录音器停止了，尝试重新启动
+            do {
+                try configureSession()
+                if recorder.record() {
+                    print("✅ 录音器重新启动成功")
+                } else {
+                    print("❌ 录音器重新启动失败")
+                    delegate?.recorderDidFail(RecorderError.failedToStart)
+                }
+            } catch {
+                print("⚠️ 后台录音会话配置失败: \(error)")
+                // 不在这里报告错误，因为可能是临时性的
+            }
+        } else {
+            print("✅ 录音器仍在运行，当前时长: \(recorder.currentTime)秒")
+        }
+
+        // 注意：使用 .record category + UIBackgroundModes: audio 时
+        // 系统会自动保持录音在后台运行，不需要手动管理后台任务
+        // 后台任务主要用于短暂的清理工作
+    }
+    
+    @objc private func applicationWillEnterForeground() {
+        guard let recorder = recorder else { return }
+        
+        print("📱 应用回到前台，检查录音状态...")
+        
+        // 确保录音器仍在运行
+        if !recorder.isRecording {
+            print("⚠️ 录音器已停止，尝试重新启动...")
+            do {
+                try configureSession()
+                if recorder.record() {
+                    print("✅ 录音器重新启动成功")
+                } else {
+                    print("❌ 录音器重新启动失败")
+                }
+            } catch {
+                print("⚠️ 前台录音会话配置失败: \(error)")
+            }
+        } else {
+            print("✅ 录音器仍在运行，当前时长: \(recorder.currentTime)秒")
+        }
+    }
+    
+    @objc private func handleAudioSessionInterruption(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+        
+        switch type {
+        case .began:
+            // 中断开始 - 录音会自动暂停
+            print("⚠️ 音频会话中断开始")
+            
+        case .ended:
+            // 中断结束 - 恢复录音
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+                return
+            }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            
+            if options.contains(.shouldResume) {
+                print("✅ 音频会话中断结束，恢复录音")
+                do {
+                    try AVAudioSession.sharedInstance().setActive(true)
+                    if let recorder = recorder, !recorder.isRecording {
+                        try recorder.record()
+                    }
+                } catch {
+                    print("❌ 恢复录音失败: \(error)")
+                    delegate?.recorderDidFail(error)
+                }
+            }
+            
+        @unknown default:
+            break
+        }
+    }
+    
+    @objc private func handleAudioSessionRouteChange(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        switch reason {
+        case .oldDeviceUnavailable:
+            // 耳机等设备断开，可能需要重新配置
+            print("⚠️ 音频设备断开")
+            
+        default:
+            break
+        }
+    }
+    
+    private func refreshBackgroundTask() {
+        // 如果后台任务即将过期，重新申请
+        if backgroundTaskID != .invalid {
+            let remainingTime = UIApplication.shared.backgroundTimeRemaining
+            if remainingTime < 10 {
+                // 时间快用完了，重新申请
+                endBackgroundTask()
+                beginBackgroundTask()
+            }
+        }
+    }
+    
+    private func beginBackgroundTask() {
+        endBackgroundTask()
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+            self?.endBackgroundTask()
+        }
+    }
+    
+    private func endBackgroundTask() {
+        if backgroundTaskID != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            backgroundTaskID = .invalid
+        }
+    }
+    
     private func activateDisplayLink() {
+        // 前台时使用 CADisplayLink（更流畅）
         displayLink = CADisplayLink(target: self, selector: #selector(updateDuration))
         displayLink?.add(to: .main, forMode: .common)
+        displayLink?.isPaused = false
     }
 
     private func deactivateDisplayLink() {
         displayLink?.invalidate()
         displayLink = nil
     }
+    
+    private func activateTimer() {
+        // 使用 Timer 作为备用，在后台也能工作
+        deactivateTimer()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+
+            // 定期更新录音时长和音量
+            self.updateDuration()
+        }
+        RunLoop.current.add(timer!, forMode: .common)
+        RunLoop.current.add(timer!, forMode: .default)
+    }
+    
+    private func deactivateTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
 
     @objc private func updateDuration() {
         guard let startDate else { return }
-        let duration = Date().timeIntervalSince(startDate)
+        guard let recorder = recorder else { return }
+
+        // 检查录音器是否仍在运行（每10次检查一次，避免过于频繁）
+        checkCount += 1
+        if checkCount >= 10 {
+            checkCount = 0
+            if !recorder.isRecording {
+                // 如果录音器停止了，尝试重新启动
+                do {
+                    try configureSession()
+                    if recorder.record() {
+                        print("✅ 录音器自动恢复")
+                    }
+                } catch {
+                    print("⚠️ 录音器恢复失败: \(error)")
+                }
+            }
+        }
+
+        // 优先使用 recorder.currentTime（更准确）
+        let duration = recorder.isRecording ? recorder.currentTime : Date().timeIntervalSince(startDate)
+
         var level: Float = 0
-        if let recorder {
+        if recorder.isRecording {
             recorder.updateMeters()
             let power = recorder.averagePower(forChannel: 0)
             let linearLevel = pow(10, power / 20)
             level = max(0, min(1, linearLevel))
         }
+
         delegate?.recorderDidUpdate(duration: duration, level: level)
+
+        // 更新 Live Activity（iOS 16.1+）
+        // if #available(iOS 16.1, *) {
+        //     RecordingLiveActivityService.shared.update(duration: duration, level: level)
+        // }
     }
 }
 
 extension AudioRecorderService: AVAudioRecorderDelegate {
     public func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
-        delegate?.recorderDidFinish(successfully: flag, fileURL: flag ? recorder.url : nil)
+        endBackgroundTask()
         deactivateDisplayLink()
+        deactivateTimer()
+        delegate?.recorderDidFinish(successfully: flag, fileURL: flag ? recorder.url : nil)
     }
 
     public func audioRecorderEncodeErrorDidOccur(_ recorder: AVAudioRecorder, error: Error?) {
+        endBackgroundTask()
+        deactivateDisplayLink()
+        deactivateTimer()
         if let error {
             delegate?.recorderDidFail(error)
         } else {
             delegate?.recorderDidFail(RecorderError.unknown)
         }
-        deactivateDisplayLink()
     }
 }
 
