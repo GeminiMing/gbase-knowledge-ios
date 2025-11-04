@@ -129,7 +129,7 @@
 				};
 			};
 			buildConfigurationList = 18D5F30A2EB436A1006E2B5D /* Build configuration list for PBXProject "GBaseKnowledgeApp" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -178,6 +178,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				DEVELOPMENT_TEAM = 7J39XLV4M8;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -239,6 +240,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				DEVELOPMENT_TEAM = 7J39XLV4M8;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -300,6 +302,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GBaseKnowledgeApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Gbase;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -347,6 +350,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GBaseKnowledgeApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Gbase;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;

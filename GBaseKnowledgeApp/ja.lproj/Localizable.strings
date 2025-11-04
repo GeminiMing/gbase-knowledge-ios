@@ -1,75 +1,75 @@
 /* Common */
-"common.ok" = "確定";
-"common.cancel" = "キャンセル";
-"common.error" = "エラー";
-"common.success" = "成功";
-"common.loading" = "読み込み中...";
-"common.back" = "戻る";
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.error" = "Error";
+"common.success" = "Success";
+"common.loading" = "Loading...";
+"common.back" = "Back";
 
 /* Login */
-"login.title" = "サインイン";
-"login.email" = "メールアドレス";
-"login.password" = "パスワード";
-"login.button" = "サインイン";
-"login.welcome_back" = "おかえりなさい";
+"login.title" = "Sign In";
+"login.email" = "Email";
+"login.password" = "Password";
+"login.button" = "Sign In";
+"login.welcome_back" = "Welcome back";
 "login.email_placeholder" = "your@email.com";
-"login.password_placeholder" = "パスワードを入力";
+"login.password_placeholder" = "Enter password";
 
 /* Profile */
-"profile.title" = "マイ";
-"profile.basic_info" = "基本情報";
-"profile.name" = "名前";
-"profile.email" = "メールアドレス";
-"profile.default_company" = "デフォルト会社";
-"profile.company_id" = "会社番号";
-"profile.company_username" = "企業ユーザー名";
-"profile.language" = "言語";
-"profile.not_logged_in" = "ログインしていません";
-"profile.clear_cache" = "ローカルキャッシュをクリア";
-"profile.logout" = "ログアウト";
-"profile.alert_title" = "通知";
-"profile.cache_cleared" = "ローカルキャッシュをクリアしました";
-"profile.dependency_not_injected" = "依存関係が注入されていません";
+"profile.title" = "My";
+"profile.basic_info" = "Basic Information";
+"profile.name" = "Name";
+"profile.email" = "Email";
+"profile.default_company" = "Default Company";
+"profile.company_id" = "Company ID";
+"profile.company_username" = "Company Username";
+"profile.language" = "Language";
+"profile.not_logged_in" = "Not Logged In";
+"profile.clear_cache" = "Clear Local Cache";
+"profile.logout" = "Logout";
+"profile.alert_title" = "Notice";
+"profile.cache_cleared" = "Local cache cleared";
+"profile.dependency_not_injected" = "Dependency not injected";
 
 /* Projects */
-"projects.title" = "プロジェクト一覧";
-"projects.items" = "項目";
-"projects.temporary_meeting" = "一時会議";
-"projects.search_placeholder" = "プロジェクトを検索...";
-"projects.empty_title" = "プロジェクトがありません";
-"projects.search_empty_title" = "一致するプロジェクトが見つかりません";
-"projects.search_empty_message" = "別のキーワードで検索してみてください";
-"project_role.owner" = "所有者";
-"project_role.contributor" = "貢献者";
-"project_role.sharee" = "共有者";
+"projects.title" = "Projects";
+"projects.items" = "Items";
+"projects.temporary_meeting" = "Temporary Meeting";
+"projects.search_placeholder" = "Search projects...";
+"projects.empty_title" = "No Projects";
+"projects.search_empty_title" = "No matching projects found";
+"projects.search_empty_message" = "Try searching with different keywords";
+"project_role.owner" = "Owner";
+"project_role.contributor" = "Contributor";
+"project_role.sharee" = "Sharee";
 
 /* Recorder */
-"recorder.back" = "戻る";
-"recorder.meeting_id" = "会議番号：";
-"recorder.no_recordings" = "録音がありません";
-"recorder.start_recording_hint" = "下のボタンをタップして録音を開始";
-"recorder.preparing" = "録音準備中";
-"recorder.retry_upload" = "アップロードを再試行";
-"recorder.delete" = "削除";
-"recorder.upload_failed" = "アップロード失敗";
+"recorder.back" = "Back";
+"recorder.meeting_id" = "Meeting ID: ";
+"recorder.no_recordings" = "No Recordings";
+"recorder.start_recording_hint" = "Tap the button below to start recording";
+"recorder.preparing" = "Ready to Record";
+"recorder.retry_upload" = "Retry Upload";
+"recorder.delete" = "Delete";
+"recorder.upload_failed" = "Upload Failed";
 "recorder.upload_progress" = "%d%%";
-"recorder.processing" = "処理中...";
-"recorder.uploading" = "アップロード中...";
-"recorder.dependency_not_injected" = "依存関係が注入されていません";
-"recorder.meeting_not_prepared" = "会議が準備されていません。まずプロジェクトを選択してください";
-"recorder.microphone_permission_denied" = "マイクの権限が許可されていません";
-"recorder.unknown_error" = "不明なエラー";
+"recorder.processing" = "Processing...";
+"recorder.uploading" = "Uploading...";
+"recorder.dependency_not_injected" = "Dependency not injected";
+"recorder.meeting_not_prepared" = "Meeting not prepared. Please select a project first";
+"recorder.microphone_permission_denied" = "Microphone permission denied";
+"recorder.unknown_error" = "Unknown error";
 
 /* Upload Status */
-"upload_status.pending" = "待機中";
-"upload_status.uploading" = "アップロード中";
-"upload_status.completed" = "完了";
-"upload_status.failed" = "失敗";
+"upload_status.pending" = "Pending";
+"upload_status.uploading" = "Uploading";
+"upload_status.completed" = "Completed";
+"upload_status.failed" = "Failed";
 
 /* Tab Bar */
-"tab.projects" = "プロジェクト";
-"tab.profile" = "マイ";
+"tab.projects" = "Projects";
+"tab.profile" = "My";
 
 /* Waveform */
-"waveform.accessibility_label" = "録音波形";
+"waveform.accessibility_label" = "Recording Waveform";
 

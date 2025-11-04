@@ -126,7 +126,7 @@ public struct DIContainer {
 
         // Create CompanyManager on main actor
         let companyAPIService = CompanyAPIService(baseURL: config.environment.authBaseURL.absoluteString)
-        let companyManager = CompanyManager(apiService: companyAPIService)
+        let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
 
         return DIContainer(appState: appState,
                            loginUseCase: loginUseCase,
@@ -156,7 +156,7 @@ public struct DIContainer {
         let tokenStore = InMemoryTokenStore()
         let mockUseCase = MockAuthUseCase()
         let companyAPIService = CompanyAPIService()
-        let companyManager = CompanyManager(apiService: companyAPIService)
+        let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
         return DIContainer(appState: appState,
                            loginUseCase: mockUseCase,
                            refreshTokenUseCase: mockUseCase,
