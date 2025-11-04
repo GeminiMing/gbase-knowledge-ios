@@ -115,7 +115,8 @@ struct CurrentCompanyCard: View {
 
 #Preview("Switch Button") {
     let companyAPIService = CompanyAPIService()
-    let companyManager = CompanyManager(apiService: companyAPIService)
+    let tokenStore = KeychainTokenStore()
+    let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
     VStack(spacing: 20) {
         CompanySwitchButton(companyManager: companyManager)
         CurrentCompanyCard(companyManager: companyManager)
