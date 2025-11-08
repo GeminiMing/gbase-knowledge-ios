@@ -29,6 +29,7 @@ public struct DIContainer {
     public let recordingLocalStore: RecordingLocalStore
     public let tokenStore: TokenStore
     public let credentialsStore: UserCredentialsStoreType
+    public let watchConnectivityService: WatchConnectivityService
     public let networkMonitor: NetworkMonitor
     public let companyManager: CompanyManager
 
@@ -55,6 +56,7 @@ public struct DIContainer {
                 recordingLocalStore: RecordingLocalStore,
                 tokenStore: TokenStore,
                 credentialsStore: UserCredentialsStoreType,
+                watchConnectivityService: WatchConnectivityService,
                 networkMonitor: NetworkMonitor,
                 companyManager: CompanyManager) {
         self.appState = appState
@@ -80,6 +82,7 @@ public struct DIContainer {
         self.recordingLocalStore = recordingLocalStore
         self.tokenStore = tokenStore
         self.credentialsStore = credentialsStore
+        self.watchConnectivityService = watchConnectivityService
         self.networkMonitor = networkMonitor
         self.companyManager = companyManager
     }
@@ -154,6 +157,12 @@ public struct DIContainer {
         // Create UserCredentialsStore
         let credentialsStore = UserCredentialsStore()
 
+        // Create WatchConnectivityService
+        let watchConnectivityService = WatchConnectivityService(
+            recordingLocalStore: recordingLocalStore,
+            fileStorageService: fileStorageService
+        )
+
         return DIContainer(appState: appState,
                            loginUseCase: loginUseCase,
                            refreshTokenUseCase: refreshUseCase,
@@ -177,6 +186,7 @@ public struct DIContainer {
                            recordingLocalStore: recordingLocalStore,
                            tokenStore: tokenStore,
                            credentialsStore: credentialsStore,
+                           watchConnectivityService: watchConnectivityService,
                            networkMonitor: .shared,
                            companyManager: companyManager)
     }
@@ -191,6 +201,10 @@ public struct DIContainer {
         let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
         let fileStorageService = FileStorageService()
         let recordingLocalStore = MockRecordingLocalStore()
+        let watchConnectivityService = WatchConnectivityService(
+            recordingLocalStore: recordingLocalStore,
+            fileStorageService: fileStorageService
+        )
 
         return DIContainer(appState: appState,
                            loginUseCase: mockUseCase,
@@ -215,6 +229,7 @@ public struct DIContainer {
                            recordingLocalStore: recordingLocalStore,
                            tokenStore: tokenStore,
                            credentialsStore: credentialsStore,
+                           watchConnectivityService: watchConnectivityService,
                            networkMonitor: .shared,
                            companyManager: companyManager)
     }

@@ -1,0 +1,7 @@
+/*
+  InfoPlist.strings
+  GBase Watch App (English)
+*/
+
+/* Microphone Permission */
+"NSMicrophoneUsageDescription" = "Microphone access is required to record meeting audio";

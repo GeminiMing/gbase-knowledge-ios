@@ -42,5 +42,22 @@ public final class FileStorageService {
             try fileManager.removeItem(at: url)
         }
     }
+
+    // MARK: - Watch Recording Support
+
+    /// Save a recording file from Watch to the app's recordings directory
+    public func saveRecordingFile(from sourceURL: URL, fileName: String) throws -> URL {
+        let destinationURL = try recordingsDirectory().appendingPathComponent(fileName)
+
+        // If file already exists, remove it first
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+        }
+
+        // Copy file to recordings directory
+        try fileManager.copyItem(at: sourceURL, to: destinationURL)
+
+        return destinationURL
+    }
 }
 
