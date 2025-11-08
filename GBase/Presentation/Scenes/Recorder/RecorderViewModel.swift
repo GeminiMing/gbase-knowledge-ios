@@ -24,6 +24,7 @@ final class RecorderViewModel: NSObject, ObservableObject {
     @Published var localRecordings: [Recording] = []
     @Published var playingRecordingId: String?
     @Published var waveformSamples: [CGFloat]
+    @Published var isDraftMode: Bool = false  // New: indicates if recording without project
 
     struct ProjectOption: Identifiable, Equatable {
         let id: String
@@ -56,12 +57,22 @@ final class RecorderViewModel: NSObject, ObservableObject {
         selectedProjectTitle = project.title
         meetingTitle = meeting.title
         preparedMeeting = meeting
+        isDraftMode = false
 
         if !projectOptions.contains(where: { $0.id == project.id }) {
             projectOptions.insert(ProjectOption(id: project.id, title: project.title), at: 0)
         }
 
         Task { await loadLocalRecordings() }
+    }
+
+    // New: Prepare for quick recording without project
+    func prepareForQuickRecording() {
+        selectedProjectId = nil
+        selectedProjectTitle = nil
+        meetingTitle = ""
+        preparedMeeting = nil
+        isDraftMode = true
     }
 
     func loadProjects() async {
@@ -96,7 +107,8 @@ final class RecorderViewModel: NSObject, ObservableObject {
             return
         }
 
-        guard let meeting = preparedMeeting else {
+        // Allow recording without prepared meeting if in draft mode
+        if !isDraftMode && preparedMeeting == nil {
             errorMessage = LocalizedStringKey.recorderMeetingNotPrepared.localized
             return
         }
@@ -109,7 +121,8 @@ final class RecorderViewModel: NSObject, ObservableObject {
             }
 
             let now = Date()
-            let fileURL = try container.fileStorageService.makeRecordingURL(timestamp: now, meetingId: meeting.id)
+            let meetingId = isDraftMode ? "draft" : preparedMeeting?.id ?? "unknown"
+            let fileURL = try container.fileStorageService.makeRecordingURL(timestamp: now, meetingId: meetingId)
             try container.audioRecorderService.startRecording(to: fileURL)
 
             self.recordingURL = fileURL
@@ -123,7 +136,7 @@ final class RecorderViewModel: NSObject, ObservableObject {
     }
 
     func stopRecording() async {
-        guard let container, let meeting = preparedMeeting, let fileURL = recordingURL, let startAt = recordingStartAt else {
+        guard let container, let fileURL = recordingURL, let startAt = recordingStartAt else {
             status = .idle
             return
         }
@@ -134,24 +147,35 @@ final class RecorderViewModel: NSObject, ObservableObject {
         do {
             let fileSize = try container.fileStorageService.fileSize(at: fileURL)
             let duration = try await durationOfFile(at: fileURL)
-            let recording = Recording(id: UUID().uuidString,
-                                      meetingId: meeting.id,
-                                      projectId: meeting.projectId,
-                                      fileName: fileURL.lastPathComponent,
-                                      localFilePath: fileURL.path,
-                                      fileSize: fileSize,
-                                      duration: duration,
-                                      contentHash: nil,
-                                      uploadStatus: .pending,
-                                      uploadProgress: 0,
-                                      uploadId: nil,
-                                      createdAt: Date(),
-                                      actualStartAt: startAt,
-                                      actualEndAt: Date())
+
+            // Create recording as draft if in draft mode
+            let recording = Recording(
+                id: UUID().uuidString,
+                meetingId: isDraftMode ? nil : preparedMeeting?.id,
+                projectId: isDraftMode ? nil : preparedMeeting?.projectId,
+                fileName: fileURL.lastPathComponent,
+                customName: nil,
+                localFilePath: fileURL.path,
+                fileSize: fileSize,
+                duration: duration,
+                contentHash: nil,
+                uploadStatus: .pending,
+                uploadProgress: 0,
+                uploadId: nil,
+                createdAt: Date(),
+                actualStartAt: startAt,
+                actualEndAt: Date()
+            )
 
             try container.recordingLocalStore.upsert(recording)
             await loadLocalRecordings()
-            try await upload(recording: recording)
+
+            // Only upload if not in draft mode (has project binding)
+            if !isDraftMode {
+                try await upload(recording: recording)
+            } else {
+                status = .idle
+            }
         } catch {
             errorMessage = error.localizedDescription
             status = .idle
@@ -231,19 +255,27 @@ final class RecorderViewModel: NSObject, ObservableObject {
 
     private func upload(recording: Recording) async throws {
         guard let container else { throw APIError.networkUnavailable }
+
+        // Skip upload for draft recordings (no project binding)
+        guard let meetingId = recording.meetingId, !meetingId.isEmpty else {
+            return
+        }
+
         status = .uploading(progress: 0)
 
         let fileURL = URL(fileURLWithPath: recording.localFilePath)
         let actualStart = recording.actualStartAt ?? Date()
         let actualEnd = recording.actualEndAt ?? Date()
         do {
-            let application = try await container.recordingUploadService.uploadRecording(meetingId: recording.meetingId,
-                                                                                        fileURL: fileURL,
-                                                                                        actualStartAt: actualStart,
-                                                                                        actualEndAt: actualEnd,
-                                                                                        fileType: "COMPLETE_RECORDING_FILE",
-                                                                                        fromType: "GBASE",
-                                                                                        progressHandler: { [weak self] progress in
+            let application = try await container.recordingUploadService.uploadRecording(
+                meetingId: meetingId,
+                fileURL: fileURL,
+                actualStartAt: actualStart,
+                actualEndAt: actualEnd,
+                fileType: "COMPLETE_RECORDING_FILE",
+                fromType: "GBASE",
+                customName: recording.customName,
+                progressHandler: { [weak self] progress in
                 Task { @MainActor in
                     if progress >= 100 {
                         self?.status = .completed
@@ -267,7 +299,7 @@ final class RecorderViewModel: NSObject, ObservableObject {
             try container.recordingLocalStore.update(id: recording.id, status: .completed, progress: 100)
             await loadLocalRecordings()
             Logger.debug("上传完成: \(application.uuid)")
-            
+
             // 如果进度回调还没触发完成状态，确保状态已更新
             if case .uploading = status {
                 status = .completed
@@ -298,10 +330,16 @@ final class RecorderViewModel: NSObject, ObservableObject {
 
         do {
             let recordings = try container.recordingLocalStore.fetch(projectId: nil, status: nil)
-            for recording in recordings where !validProjectIds.contains(recording.projectId) {
-                try container.recordingLocalStore.remove(recording.id)
-                let fileURL = URL(fileURLWithPath: recording.localFilePath)
-                try container.fileStorageService.removeFile(at: fileURL)
+            for recording in recordings {
+                // Skip draft recordings (they don't have projectId)
+                guard let projectId = recording.projectId else { continue }
+
+                // Only delete recordings with invalid projectId
+                if !validProjectIds.contains(projectId) {
+                    try container.recordingLocalStore.remove(recording.id)
+                    let fileURL = URL(fileURLWithPath: recording.localFilePath)
+                    try container.fileStorageService.removeFile(at: fileURL)
+                }
             }
         } catch {
             errorMessage = error.localizedDescription

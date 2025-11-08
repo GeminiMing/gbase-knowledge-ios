@@ -14,6 +14,8 @@
 "login.welcome_back" = "おかえりなさい";
 "login.email_placeholder" = "your@email.com";
 "login.password_placeholder" = "パスワードを入力";
+"login.remember_password" = "パスワードを記憶";
+"login.empty_fields" = "メールアドレスとパスワードを入力してください";
 
 /* Profile */
 "profile.title" = "マイ";
@@ -68,7 +70,33 @@
 
 /* Tab Bar */
 "tab.projects" = "プロジェクト";
+"tab.drafts" = "下書き";
 "tab.profile" = "マイ";
+
+/* Drafts */
+"drafts.title" = "下書き";
+"drafts.empty_title" = "下書きがありません";
+"drafts.empty_message" = "右下の赤いボタンをタップして録音を開始";
+"draft_detail.title" = "下書き詳細";
+"draft_detail.recording_info" = "録音情報";
+"draft_detail.file_name" = "ファイル名";
+"draft_detail.duration" = "時長";
+"draft_detail.file_size" = "サイズ";
+"draft_detail.created_at" = "作成日時";
+"draft_detail.custom_name" = "カスタム名";
+"draft_detail.custom_name_placeholder" = "録音名を入力（オプション）";
+"draft_detail.select_project" = "プロジェクトを選択";
+"draft_detail.no_projects" = "利用可能なプロジェクトがありません";
+"draft_detail.project" = "プロジェクト";
+"draft_detail.please_select" = "プロジェクトを選択してください";
+"draft_detail.binding" = "バインド中...";
+"draft_detail.bind_and_upload" = "バインドしてアップロード";
+"draft_detail.binding_description" = "下書きバインドから作成";
+"draft_detail.recording_not_found" = "録音が見つかりません";
+
+/* Quick Recorder */
+"quick_recorder.title" = "クイック録音";
+"quick_recorder.default_name" = "クイック録音";
 
 /* Waveform */
 "waveform.accessibility_label" = "録音波形";

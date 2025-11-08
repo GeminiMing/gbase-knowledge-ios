@@ -13,7 +13,8 @@ NC='\033[0m' # No Color
 
 # 配置
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCHEME="GBaseKnowledgeApp"
+PROJECT_FILE="GBase.xcodeproj"
+SCHEME="GBase"
 CONFIGURATION="Release"
 BUILD_DIR="$PROJECT_DIR/build"
 ARCHIVE_PATH="$BUILD_DIR/${SCHEME}.xcarchive"
@@ -40,12 +41,14 @@ mkdir -p "$BUILD_DIR"
 
 # 创建 Archive
 echo -e "${YELLOW}2. 创建 Archive...${NC}"
-xcodebuild -scheme "$SCHEME" \
+xcodebuild -project "$PROJECT_FILE" \
+    -scheme "$SCHEME" \
     -configuration "$CONFIGURATION" \
     -sdk iphoneos \
     -archivePath "$ARCHIVE_PATH" \
     clean archive \
-    | xcpretty || xcodebuild -scheme "$SCHEME" \
+    | xcpretty || xcodebuild -project "$PROJECT_FILE" \
+        -scheme "$SCHEME" \
         -configuration "$CONFIGURATION" \
         -sdk iphoneos \
         -archivePath "$ARCHIVE_PATH" \
@@ -97,7 +100,7 @@ xcodebuild -exportArchive \
         -exportPath "$EXPORT_PATH" \
         -exportOptionsPlist "$TEMP_EXPORT_OPTIONS"
 
-IPA_PATH="$EXPORT_PATH/${SCHEME}.ipa"
+IPA_PATH="$EXPORT_PATH/GBase.ipa"
 
 if [ ! -f "$IPA_PATH" ]; then
     echo -e "${RED}错误: IPA 导出失败${NC}"

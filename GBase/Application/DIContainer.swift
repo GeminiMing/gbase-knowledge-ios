@@ -16,12 +16,19 @@ public struct DIContainer {
     public let applyRecordingUploadUseCase: ApplyRecordingUploadUseCase
     public let finishRecordingUploadUseCase: FinishRecordingUploadUseCase
 
+    // Draft-related use cases
+    public let fetchDraftsUseCase: FetchDraftsUseCase
+    public let bindDraftToProjectUseCase: BindDraftToProjectUseCase
+    public let updateDraftNameUseCase: UpdateDraftNameUseCase
+    public let deleteDraftUseCase: DeleteDraftUseCase
+
     public let audioRecorderService: AudioRecorderService
     public let audioPlayerService: AudioPlayerService
     public let fileStorageService: FileStorageService
     public let recordingUploadService: RecordingUploadServiceType
     public let recordingLocalStore: RecordingLocalStore
     public let tokenStore: TokenStore
+    public let credentialsStore: UserCredentialsStoreType
     public let networkMonitor: NetworkMonitor
     public let companyManager: CompanyManager
 
@@ -37,12 +44,17 @@ public struct DIContainer {
                 fetchMeetingDetailUseCase: FetchMeetingDetailUseCase,
                 applyRecordingUploadUseCase: ApplyRecordingUploadUseCase,
                 finishRecordingUploadUseCase: FinishRecordingUploadUseCase,
+                fetchDraftsUseCase: FetchDraftsUseCase,
+                bindDraftToProjectUseCase: BindDraftToProjectUseCase,
+                updateDraftNameUseCase: UpdateDraftNameUseCase,
+                deleteDraftUseCase: DeleteDraftUseCase,
                 audioRecorderService: AudioRecorderService,
                 audioPlayerService: AudioPlayerService,
                 fileStorageService: FileStorageService,
                 recordingUploadService: RecordingUploadServiceType,
                 recordingLocalStore: RecordingLocalStore,
                 tokenStore: TokenStore,
+                credentialsStore: UserCredentialsStoreType,
                 networkMonitor: NetworkMonitor,
                 companyManager: CompanyManager) {
         self.appState = appState
@@ -57,12 +69,17 @@ public struct DIContainer {
         self.fetchMeetingDetailUseCase = fetchMeetingDetailUseCase
         self.applyRecordingUploadUseCase = applyRecordingUploadUseCase
         self.finishRecordingUploadUseCase = finishRecordingUploadUseCase
+        self.fetchDraftsUseCase = fetchDraftsUseCase
+        self.bindDraftToProjectUseCase = bindDraftToProjectUseCase
+        self.updateDraftNameUseCase = updateDraftNameUseCase
+        self.deleteDraftUseCase = deleteDraftUseCase
         self.audioRecorderService = audioRecorderService
         self.audioPlayerService = audioPlayerService
         self.fileStorageService = fileStorageService
         self.recordingUploadService = recordingUploadService
         self.recordingLocalStore = recordingLocalStore
         self.tokenStore = tokenStore
+        self.credentialsStore = credentialsStore
         self.networkMonitor = networkMonitor
         self.companyManager = companyManager
     }
@@ -118,6 +135,12 @@ public struct DIContainer {
 
         let fileStorageService = FileStorageService()
         let recordingLocalStore = RealmRecordingLocalStore()
+
+        // Draft-related use cases
+        let fetchDraftsUseCase = DefaultFetchDraftsUseCase(localStore: recordingLocalStore)
+        let bindDraftToProjectUseCase = DefaultBindDraftToProjectUseCase(localStore: recordingLocalStore)
+        let updateDraftNameUseCase = DefaultUpdateDraftNameUseCase(localStore: recordingLocalStore)
+        let deleteDraftUseCase = DefaultDeleteDraftUseCase(localStore: recordingLocalStore, fileStorage: fileStorageService)
         let audioRecorderService = AudioRecorderService()
         let audioPlayerService = AudioPlayerService()
         let recordingUploadService = RecordingUploadService(applyUseCase: applyRecordingUploadUseCase,
@@ -127,6 +150,9 @@ public struct DIContainer {
         // Create CompanyManager on main actor
         let companyAPIService = CompanyAPIService(baseURL: config.environment.authBaseURL.absoluteString)
         let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
+
+        // Create UserCredentialsStore
+        let credentialsStore = UserCredentialsStore()
 
         return DIContainer(appState: appState,
                            loginUseCase: loginUseCase,
@@ -140,12 +166,17 @@ public struct DIContainer {
                            fetchMeetingDetailUseCase: fetchMeetingDetailUseCase,
                            applyRecordingUploadUseCase: applyRecordingUploadUseCase,
                            finishRecordingUploadUseCase: finishRecordingUploadUseCase,
+                           fetchDraftsUseCase: fetchDraftsUseCase,
+                           bindDraftToProjectUseCase: bindDraftToProjectUseCase,
+                           updateDraftNameUseCase: updateDraftNameUseCase,
+                           deleteDraftUseCase: deleteDraftUseCase,
                            audioRecorderService: audioRecorderService,
                            audioPlayerService: audioPlayerService,
                            fileStorageService: fileStorageService,
                            recordingUploadService: recordingUploadService,
                            recordingLocalStore: recordingLocalStore,
                            tokenStore: tokenStore,
+                           credentialsStore: credentialsStore,
                            networkMonitor: .shared,
                            companyManager: companyManager)
     }
@@ -154,9 +185,13 @@ public struct DIContainer {
     public static var preview: DIContainer {
         let appState = AppState()
         let tokenStore = InMemoryTokenStore()
+        let credentialsStore = UserCredentialsStore()
         let mockUseCase = MockAuthUseCase()
         let companyAPIService = CompanyAPIService()
         let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
+        let fileStorageService = FileStorageService()
+        let recordingLocalStore = MockRecordingLocalStore()
+
         return DIContainer(appState: appState,
                            loginUseCase: mockUseCase,
                            refreshTokenUseCase: mockUseCase,
@@ -169,12 +204,17 @@ public struct DIContainer {
                            fetchMeetingDetailUseCase: MockMeetingsUseCase(),
                            applyRecordingUploadUseCase: MockRecordingUseCase(),
                            finishRecordingUploadUseCase: MockRecordingUseCase(),
+                           fetchDraftsUseCase: MockDraftUseCases(localStore: recordingLocalStore),
+                           bindDraftToProjectUseCase: MockDraftUseCases(localStore: recordingLocalStore),
+                           updateDraftNameUseCase: MockDraftUseCases(localStore: recordingLocalStore),
+                           deleteDraftUseCase: MockDraftUseCases(localStore: recordingLocalStore, fileStorage: fileStorageService),
                            audioRecorderService: AudioRecorderService(),
                            audioPlayerService: AudioPlayerService(),
-                           fileStorageService: FileStorageService(),
+                           fileStorageService: fileStorageService,
                            recordingUploadService: MockRecordingUploadService(),
-                           recordingLocalStore: MockRecordingLocalStore(),
+                           recordingLocalStore: recordingLocalStore,
                            tokenStore: tokenStore,
+                           credentialsStore: credentialsStore,
                            networkMonitor: .shared,
                            companyManager: companyManager)
     }
@@ -301,7 +341,7 @@ private final class MockRecordingUseCase: ApplyRecordingUploadUseCase, FinishRec
 }
 
 private final class MockRecordingUploadService: RecordingUploadServiceType {
-    func uploadRecording(meetingId: String, fileURL: URL, actualStartAt: Date, actualEndAt: Date, fileType: String, fromType: String, progressHandler: @escaping (Double) -> Void) async throws -> UploadApplication {
+    func uploadRecording(meetingId: String, fileURL: URL, actualStartAt: Date, actualEndAt: Date, fileType: String, fromType: String, customName: String?, progressHandler: @escaping (Double) -> Void) async throws -> UploadApplication {
         progressHandler(100)
         return UploadApplication(id: 0, uploadUri: URL(string: "https://example.com")!, uuid: UUID().uuidString, contentType: "audio/wav")
     }
@@ -323,6 +363,10 @@ private final class MockRecordingLocalStore: RecordingLocalStore {
         }
     }
 
+    func fetchDrafts() throws -> [Recording] {
+        storage.filter { $0.projectId == nil || $0.meetingId == nil }
+    }
+
     func update(id: String, status: UploadStatus, progress: Double) throws {
         guard let index = storage.firstIndex(where: { $0.id == id }) else { return }
         let existing = storage[index]
@@ -330,6 +374,7 @@ private final class MockRecordingLocalStore: RecordingLocalStore {
                                    meetingId: existing.meetingId,
                                    projectId: existing.projectId,
                                    fileName: existing.fileName,
+                                   customName: existing.customName,
                                    localFilePath: existing.localFilePath,
                                    fileSize: existing.fileSize,
                                    duration: existing.duration,
@@ -342,8 +387,54 @@ private final class MockRecordingLocalStore: RecordingLocalStore {
                                    actualEndAt: existing.actualEndAt)
     }
 
+    func updateRecording(id: String, projectId: String?, meetingId: String?, customName: String?) throws {
+        guard let index = storage.firstIndex(where: { $0.id == id }) else { return }
+        let existing = storage[index]
+        storage[index] = Recording(id: existing.id,
+                                   meetingId: meetingId ?? existing.meetingId,
+                                   projectId: projectId ?? existing.projectId,
+                                   fileName: existing.fileName,
+                                   customName: customName ?? existing.customName,
+                                   localFilePath: existing.localFilePath,
+                                   fileSize: existing.fileSize,
+                                   duration: existing.duration,
+                                   contentHash: existing.contentHash,
+                                   uploadStatus: existing.uploadStatus,
+                                   uploadProgress: existing.uploadProgress,
+                                   uploadId: existing.uploadId,
+                                   createdAt: existing.createdAt,
+                                   actualStartAt: existing.actualStartAt,
+                                   actualEndAt: existing.actualEndAt)
+    }
+
     func remove(_ id: String) throws {
         storage.removeAll { $0.id == id }
+    }
+}
+
+private final class MockDraftUseCases: FetchDraftsUseCase, BindDraftToProjectUseCase, UpdateDraftNameUseCase, DeleteDraftUseCase {
+    private let localStore: RecordingLocalStore
+    private let fileStorage: FileStorageService?
+
+    init(localStore: RecordingLocalStore, fileStorage: FileStorageService? = nil) {
+        self.localStore = localStore
+        self.fileStorage = fileStorage
+    }
+
+    func execute() throws -> [Recording] {
+        try localStore.fetchDrafts()
+    }
+
+    func execute(recordingId: String, projectId: String, meetingId: String, customName: String?) throws {
+        try localStore.updateRecording(id: recordingId, projectId: projectId, meetingId: meetingId, customName: customName)
+    }
+
+    func execute(recordingId: String, customName: String) throws {
+        try localStore.updateRecording(id: recordingId, projectId: nil, meetingId: nil, customName: customName)
+    }
+
+    func execute(recordingId: String) throws {
+        try localStore.remove(recordingId)
     }
 }
 #endif

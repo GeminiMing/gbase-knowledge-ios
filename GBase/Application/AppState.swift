@@ -5,6 +5,7 @@ import Combine
 public final class AppState: ObservableObject {
     public enum MainTab: Hashable {
         case projects
+        case drafts
         case profile
     }
 

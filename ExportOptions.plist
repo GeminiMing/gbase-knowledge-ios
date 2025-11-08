@@ -2,39 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- 分发方式: app-store, ad-hoc, enterprise, development -->
     <key>method</key>
-    <string>ad-hoc</string>
-
-    <!-- 自动签名 -->
+    <string>development</string>
+    <key>teamID</key>
+    <string>3PJ3WU48J2</string>
     <key>signingStyle</key>
     <string>automatic</string>
-
-    <!-- Team ID (需要替换为你的 Team ID) -->
-    <!-- 可以在 Apple Developer 网站或 Xcode Signing 中找到 -->
-    <key>teamID</key>
-    <string>YOUR_TEAM_ID</string>
-
-    <!-- 编译选项 -->
-    <key>compileBitcode</key>
-    <false/>
-
-    <!-- 是否包含符号表 -->
+    <key>stripSwiftSymbols</key>
+    <true/>
     <key>uploadSymbols</key>
     <true/>
-
-    <!-- 是否使用 App Thinning -->
-    <key>thinning</key>
-    <string>&lt;none&gt;</string>
-
-    <!-- Provisioning Profile 映射（可选） -->
-    <!-- 如果使用手动签名，需要指定具体的 Provisioning Profile -->
-    <!--
-    <key>provisioningProfiles</key>
-    <dict>
-        <key>com.yourcompany.GBaseKnowledgeApp</key>
-        <string>Your Provisioning Profile Name</string>
-    </dict>
-    -->
+    <key>compileBitcode</key>
+    <false/>
 </dict>
 </plist>

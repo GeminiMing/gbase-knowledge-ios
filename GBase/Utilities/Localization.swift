@@ -89,6 +89,8 @@ enum LocalizedStringKey {
     static let loginWelcomeBack = "login.welcome_back"
     static let loginEmailPlaceholder = "login.email_placeholder"
     static let loginPasswordPlaceholder = "login.password_placeholder"
+    static let loginRememberPassword = "login.remember_password"
+    static let loginEmptyFields = "login.empty_fields"
     
     // Profile
     static let profileTitle = "profile.title"
@@ -143,8 +145,34 @@ enum LocalizedStringKey {
     
     // Tab Bar
     static let tabProjects = "tab.projects"
+    static let tabDrafts = "tab.drafts"
     static let tabProfile = "tab.profile"
-    
+
+    // Drafts
+    static let draftsTitle = "drafts.title"
+    static let draftsEmptyTitle = "drafts.empty_title"
+    static let draftsEmptyMessage = "drafts.empty_message"
+    static let draftDetailTitle = "draft_detail.title"
+    static let draftDetailRecordingInfo = "draft_detail.recording_info"
+    static let draftDetailFileName = "draft_detail.file_name"
+    static let draftDetailDuration = "draft_detail.duration"
+    static let draftDetailFileSize = "draft_detail.file_size"
+    static let draftDetailCreatedAt = "draft_detail.created_at"
+    static let draftDetailCustomName = "draft_detail.custom_name"
+    static let draftDetailCustomNamePlaceholder = "draft_detail.custom_name_placeholder"
+    static let draftDetailSelectProject = "draft_detail.select_project"
+    static let draftDetailNoProjects = "draft_detail.no_projects"
+    static let draftDetailProject = "draft_detail.project"
+    static let draftDetailPleaseSelect = "draft_detail.please_select"
+    static let draftDetailBinding = "draft_detail.binding"
+    static let draftDetailBindAndUpload = "draft_detail.bind_and_upload"
+    static let draftDetailBindingDescription = "draft_detail.binding_description"
+    static let draftDetailRecordingNotFound = "draft_detail.recording_not_found"
+
+    // Quick Recorder
+    static let quickRecorderTitle = "quick_recorder.title"
+    static let quickRecorderDefaultName = "quick_recorder.default_name"
+
     // Waveform
     static let waveformAccessibilityLabel = "waveform.accessibility_label"
 }

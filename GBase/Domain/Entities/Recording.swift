@@ -22,9 +22,10 @@ public enum UploadStatus: String, Codable, CaseIterable {
 
 public struct Recording: Identifiable, Codable, Equatable {
     public let id: String
-    public let meetingId: String
-    public let projectId: String
+    public let meetingId: String?  // Optional: nil for draft recordings
+    public let projectId: String?  // Optional: nil for draft recordings
     public let fileName: String
+    public let customName: String? // User-defined name for the recording
     public let localFilePath: String
     public let fileSize: Int64
     public let duration: Double
@@ -37,9 +38,10 @@ public struct Recording: Identifiable, Codable, Equatable {
     public let actualEndAt: Date?
 
     public init(id: String,
-                meetingId: String,
-                projectId: String,
+                meetingId: String?,
+                projectId: String?,
                 fileName: String,
+                customName: String? = nil,
                 localFilePath: String,
                 fileSize: Int64,
                 duration: Double,
@@ -54,6 +56,7 @@ public struct Recording: Identifiable, Codable, Equatable {
         self.meetingId = meetingId
         self.projectId = projectId
         self.fileName = fileName
+        self.customName = customName
         self.localFilePath = localFilePath
         self.fileSize = fileSize
         self.duration = duration
@@ -64,6 +67,15 @@ public struct Recording: Identifiable, Codable, Equatable {
         self.createdAt = createdAt
         self.actualStartAt = actualStartAt
         self.actualEndAt = actualEndAt
+    }
+
+    // Helper computed properties
+    public var isDraft: Bool {
+        return projectId == nil || meetingId == nil
+    }
+
+    public var displayName: String {
+        return customName ?? fileName
     }
 }
 

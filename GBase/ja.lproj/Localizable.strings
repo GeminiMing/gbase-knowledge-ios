@@ -14,6 +14,8 @@
 "login.welcome_back" = "Welcome back";
 "login.email_placeholder" = "your@email.com";
 "login.password_placeholder" = "Enter password";
+"login.remember_password" = "Remember Password";
+"login.empty_fields" = "Please enter email and password";
 
 /* Profile */
 "profile.title" = "My";
@@ -68,7 +70,33 @@
 
 /* Tab Bar */
 "tab.projects" = "Projects";
+"tab.drafts" = "Drafts";
 "tab.profile" = "My";
+
+/* Drafts */
+"drafts.title" = "Drafts";
+"drafts.empty_title" = "No Drafts";
+"drafts.empty_message" = "Tap the red button at the bottom right to start recording";
+"draft_detail.title" = "Draft Details";
+"draft_detail.recording_info" = "Recording Info";
+"draft_detail.file_name" = "File Name";
+"draft_detail.duration" = "Duration";
+"draft_detail.file_size" = "Size";
+"draft_detail.created_at" = "Created At";
+"draft_detail.custom_name" = "Custom Name";
+"draft_detail.custom_name_placeholder" = "Enter recording name (optional)";
+"draft_detail.select_project" = "Select Project";
+"draft_detail.no_projects" = "No projects available";
+"draft_detail.project" = "Project";
+"draft_detail.please_select" = "Please select a project";
+"draft_detail.binding" = "Binding...";
+"draft_detail.bind_and_upload" = "Bind & Upload";
+"draft_detail.binding_description" = "Created from draft binding";
+"draft_detail.recording_not_found" = "Recording not found";
+
+/* Quick Recorder */
+"quick_recorder.title" = "Quick Record";
+"quick_recorder.default_name" = "Quick Record";
 
 /* Waveform */
 "waveform.accessibility_label" = "Recording Waveform";

@@ -98,6 +98,26 @@ struct LoginView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                     .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
+
+                    // Remember password checkbox
+                    HStack {
+                        Button(action: {
+                            viewModel.rememberPassword.toggle()
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: viewModel.rememberPassword ? "checkmark.square.fill" : "square")
+                                    .foregroundColor(viewModel.rememberPassword ? .accentColor : .secondary)
+                                    .font(.system(size: 20))
+                                Text(LocalizedStringKey.loginRememberPassword.localized)
+                                    .font(.subheadline)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 24)
                     .padding(.bottom, 24)
 
                     // 错误提示

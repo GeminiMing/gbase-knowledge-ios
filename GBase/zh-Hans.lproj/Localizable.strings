@@ -14,6 +14,8 @@
 "login.welcome_back" = "欢迎回来";
 "login.email_placeholder" = "your@email.com";
 "login.password_placeholder" = "Enter password";
+"login.remember_password" = "记住密码";
+"login.empty_fields" = "请输入邮箱和密码";
 
 /* Profile */
 "profile.title" = "我的";
@@ -68,8 +70,39 @@
 
 /* Tab Bar */
 "tab.projects" = "项目";
+"tab.drafts" = "草稿箱";
 "tab.profile" = "我的";
+
+/* Drafts */
+"drafts.title" = "草稿箱";
+"drafts.empty_title" = "暂无草稿";
+"drafts.empty_message" = "点击右下角红色按钮开始快速录音";
+"draft_detail.title" = "草稿详情";
+"draft_detail.recording_info" = "录音信息";
+"draft_detail.file_name" = "文件名";
+"draft_detail.duration" = "时长";
+"draft_detail.file_size" = "大小";
+"draft_detail.created_at" = "创建时间";
+"draft_detail.custom_name" = "自定义名称";
+"draft_detail.custom_name_placeholder" = "输入录音名称（可选）";
+"draft_detail.select_project" = "选择项目";
+"draft_detail.no_projects" = "没有可用项目";
+"draft_detail.project" = "项目";
+"draft_detail.please_select" = "请选择项目";
+"draft_detail.binding" = "绑定中...";
+"draft_detail.bind_and_upload" = "绑定并上传";
+"draft_detail.binding_description" = "由草稿绑定创建";
+"draft_detail.recording_not_found" = "未找到录音";
+
+/* Quick Recorder */
+"quick_recorder.default_name" = "快速录音";
+"quick_recorder.title" = "快速录音";
 
 /* Waveform */
 "waveform.accessibility_label" = "录音波形";
+
+
+/* Quick Recorder */
+"quick_recorder.title" = "快速录音";
+"quick_recorder.default_name" = "快速录音";
 

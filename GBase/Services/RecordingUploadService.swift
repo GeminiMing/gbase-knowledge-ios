@@ -7,6 +7,7 @@ public protocol RecordingUploadServiceType {
                          actualEndAt: Date,
                          fileType: String,
                          fromType: String,
+                         customName: String?,
                          progressHandler: @escaping (Double) -> Void) async throws -> UploadApplication
 }
 
@@ -32,10 +33,19 @@ public final class RecordingUploadService: RecordingUploadServiceType {
                                 actualEndAt: Date,
                                 fileType: String = "COMPLETE_RECORDING_FILE",
                                 fromType: String = "GBASE",
+                                customName: String? = nil,
                                 progressHandler: @escaping (Double) -> Void) async throws -> UploadApplication {
         let fileSize = try fileStorageService.fileSize(at: fileURL)
         let contentHash = try fileStorageService.sha256(of: fileURL)
-        let name = fileURL.deletingPathExtension().lastPathComponent
+
+        // Use custom name if provided, otherwise use filename
+        let name: String
+        if let customName = customName, !customName.isEmpty {
+            name = customName
+        } else {
+            name = fileURL.deletingPathExtension().lastPathComponent
+        }
+
         let `extension` = fileURL.pathExtension.lowercased()
 
         let apply = try await applyUseCase.execute(meetingId: meetingId,
