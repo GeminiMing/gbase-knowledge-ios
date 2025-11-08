@@ -1,0 +1,7 @@
+/*
+  InfoPlist.strings
+  GBase (English)
+*/
+
+/* Microphone Permission */
+"NSMicrophoneUsageDescription" = "Microphone access is required to record and upload meeting audio";

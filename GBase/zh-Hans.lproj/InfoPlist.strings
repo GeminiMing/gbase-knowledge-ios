@@ -1,0 +1,7 @@
+/*
+  InfoPlist.strings
+  GBase (Simplified Chinese)
+*/
+
+/* Microphone Permission */
+"NSMicrophoneUsageDescription" = "需要访问麦克风以录制和上传会议音频";

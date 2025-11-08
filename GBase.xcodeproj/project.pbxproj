@@ -230,6 +230,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -285,6 +286,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -304,7 +306,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GBase/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Gbase;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -354,7 +355,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GBase/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Gbase;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "录音上传会议需要麦克风访问权限";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
