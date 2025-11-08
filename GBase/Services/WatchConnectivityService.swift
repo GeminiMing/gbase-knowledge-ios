@@ -1,5 +1,6 @@
 import Foundation
 import WatchConnectivity
+import Combine
 
 /// Service to handle communication between iPhone and Apple Watch
 public class WatchConnectivityService: NSObject, ObservableObject {
@@ -68,37 +69,39 @@ extension WatchConnectivityService: WCSessionDelegate {
         }
 
         if let error = error {
-            print("WCSession activation failed: \\(error)")
+            print("❌ [iPhone] WCSession activation failed: \(error)")
         } else {
-            print("WCSession activated successfully with state: \\(activationState.rawValue)")
+            print("✅ [iPhone] WCSession activated successfully with state: \(activationState.rawValue)")
+            print("📱 [iPhone] Is paired: \(session.isPaired)")
+            print("📱 [iPhone] Is watch app installed: \(session.isWatchAppInstalled)")
         }
     }
 
     public func sessionDidBecomeInactive(_ session: WCSession) {
-        print("WCSession became inactive")
+        print("⚠️ [iPhone] WCSession became inactive")
     }
 
     public func sessionDidDeactivate(_ session: WCSession) {
-        print("WCSession deactivated, reactivating...")
+        print("⚠️ [iPhone] WCSession deactivated, reactivating...")
         session.activate()
     }
 
     public func sessionReachabilityDidChange(_ session: WCSession) {
         DispatchQueue.main.async {
             self.isWatchConnected = session.isReachable
-            print("Watch reachability changed: \\(session.isReachable)")
+            print("📱 [iPhone] Watch reachability changed: \(session.isReachable)")
         }
     }
 
     // MARK: - Receive Messages
 
     public func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-        print("Received message from Watch: \\(message)")
+        print("📥 [iPhone] Received message from Watch: \(message)")
         handleReceivedMessage(message)
     }
 
     public func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
-        print("Received message from Watch with reply handler: \\(message)")
+        print("📥 [iPhone] Received message from Watch with reply handler: \(message)")
         handleReceivedMessage(message)
         replyHandler(["status": "received", "timestamp": Date().timeIntervalSince1970])
     }
@@ -106,7 +109,8 @@ extension WatchConnectivityService: WCSessionDelegate {
     // MARK: - File Transfer
 
     public func session(_ session: WCSession, didReceive file: WCSessionFile) {
-        print("Received file from Watch: \\(file.fileURL.lastPathComponent)")
+        print("📥 [iPhone] Received file from Watch: \(file.fileURL.lastPathComponent)")
+        print("📥 [iPhone] File metadata: \(file.metadata ?? [:])")
 
         Task {
             await handleReceivedFile(file)
@@ -153,10 +157,11 @@ extension WatchConnectivityService: WCSessionDelegate {
                 localFilePath: destinationURL.path,
                 fileSize: Int64(fileSize),
                 duration: duration,
+                contentHash: nil,  // Will be computed later if needed
                 uploadStatus: .pending,
                 uploadProgress: 0,
-                recordedAt: Date(timeIntervalSince1970: timestamp),
-                uploadedAt: nil,
+                uploadId: nil,
+                createdAt: Date(timeIntervalSince1970: timestamp),
                 actualStartAt: Date(timeIntervalSince1970: timestamp),
                 actualEndAt: Date(timeIntervalSince1970: timestamp + duration)
             )

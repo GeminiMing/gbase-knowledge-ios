@@ -6,11 +6,16 @@ struct GBaseKnowledgeApp: App {
 
     init() {
         RealmConfigurator.configure()
-        
+
         // 调试：检查本地化是否正常工作
         #if DEBUG
         debugLocalization()
         #endif
+
+        // Initialize WatchConnectivityService
+        // Note: This will activate the WCSession
+        _ = WatchConnectivityService.shared
+        print("📱 [iPhone] WatchConnectivityService initialized")
     }
 
     var body: some Scene {

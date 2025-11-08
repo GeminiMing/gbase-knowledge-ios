@@ -7,11 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		185A42A32EBF459200D4DE2F /* GBase Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 185A42992EBF459000D4DE2F /* GBase Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		18D5F3AB2EB45EE3006E2B5D /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 18D5F3AA2EB45EE3006E2B5D /* RealmSwift */; };
 		18D5F3AC2EB45EE3006E2B5D /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 18D5F3AA2EB45EE3006E2B5D /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		185A42A12EBF459200D4DE2F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 18D5F3072EB436A1006E2B5D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 185A42982EBF459000D4DE2F;
+			remoteInfo = "GBase Watch App Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
+		185A42A42EBF459200D4DE2F /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				185A42A32EBF459200D4DE2F /* GBase Watch App Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		18D5F3AD2EB45EE3006E2B5D /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -26,6 +48,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		185A42992EBF459000D4DE2F /* GBase Watch App Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GBase Watch App Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		18D5F30F2EB436A1006E2B5D /* GBase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GBase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -40,6 +63,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		185A429A2EBF459000D4DE2F /* GBase Watch App Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "GBase Watch App Watch App";
+			sourceTree = "<group>";
+		};
 		18D5F3112EB436A1006E2B5D /* GBase */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -51,6 +79,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		185A42962EBF459000D4DE2F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		18D5F30C2EB436A1006E2B5D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -66,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				18D5F3112EB436A1006E2B5D /* GBase */,
+				185A429A2EBF459000D4DE2F /* GBase Watch App Watch App */,
 				18D5F3A92EB45EE2006E2B5D /* Frameworks */,
 				18D5F3102EB436A1006E2B5D /* Products */,
 			);
@@ -75,6 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				18D5F30F2EB436A1006E2B5D /* GBase.app */,
+				185A42992EBF459000D4DE2F /* GBase Watch App Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +126,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		185A42982EBF459000D4DE2F /* GBase Watch App Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 185A42A72EBF459200D4DE2F /* Build configuration list for PBXNativeTarget "GBase Watch App Watch App" */;
+			buildPhases = (
+				185A42952EBF459000D4DE2F /* Sources */,
+				185A42962EBF459000D4DE2F /* Frameworks */,
+				185A42972EBF459000D4DE2F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				185A429A2EBF459000D4DE2F /* GBase Watch App Watch App */,
+			);
+			name = "GBase Watch App Watch App";
+			packageProductDependencies = (
+			);
+			productName = "GBase Watch App Watch App";
+			productReference = 185A42992EBF459000D4DE2F /* GBase Watch App Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
 		18D5F30E2EB436A1006E2B5D /* GBase */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 18D5F31A2EB436A2006E2B5D /* Build configuration list for PBXNativeTarget "GBase" */;
@@ -97,10 +156,12 @@
 				18D5F30C2EB436A1006E2B5D /* Frameworks */,
 				18D5F30D2EB436A1006E2B5D /* Resources */,
 				18D5F3AD2EB45EE3006E2B5D /* Embed Frameworks */,
+				185A42A42EBF459200D4DE2F /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				185A42A22EBF459200D4DE2F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				18D5F3112EB436A1006E2B5D /* GBase */,
@@ -123,6 +184,9 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
+					185A42982EBF459000D4DE2F = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 					18D5F30E2EB436A1006E2B5D = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
@@ -148,11 +212,19 @@
 			projectRoot = "";
 			targets = (
 				18D5F30E2EB436A1006E2B5D /* GBase */,
+				185A42982EBF459000D4DE2F /* GBase Watch App Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		185A42972EBF459000D4DE2F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		18D5F30D2EB436A1006E2B5D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -163,6 +235,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		185A42952EBF459000D4DE2F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		18D5F30B2EB436A1006E2B5D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -172,7 +251,84 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		185A42A22EBF459200D4DE2F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 185A42982EBF459000D4DE2F /* GBase Watch App Watch App */;
+			targetProxy = 185A42A12EBF459200D4DE2F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		185A42A52EBF459200D4DE2F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZDCRSX5D6W;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "GBase Watch App";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.sparticle.gbase.knowledge.app;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparticle.gbase.knowledge.app.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		185A42A62EBF459200D4DE2F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZDCRSX5D6W;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "GBase Watch App";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.sparticle.gbase.knowledge.app;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sparticle.gbase.knowledge.app.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 		18D5F3182EB436A2006E2B5D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -392,6 +548,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		185A42A72EBF459200D4DE2F /* Build configuration list for PBXNativeTarget "GBase Watch App Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				185A42A52EBF459200D4DE2F /* Debug */,
+				185A42A62EBF459200D4DE2F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		18D5F30A2EB436A1006E2B5D /* Build configuration list for PBXProject "GBase" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
