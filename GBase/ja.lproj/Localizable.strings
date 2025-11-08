@@ -101,3 +101,4 @@
 /* Waveform */
 "waveform.accessibility_label" = "Recording Waveform";
 
+"draft_detail.uploading" = "アップロード中...";

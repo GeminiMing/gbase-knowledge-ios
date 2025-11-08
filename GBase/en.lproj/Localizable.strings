@@ -101,3 +101,4 @@
 /* Waveform */
 "waveform.accessibility_label" = "録音波形";
 
+"draft_detail.uploading" = "Uploading...";

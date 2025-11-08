@@ -165,6 +165,7 @@ enum LocalizedStringKey {
     static let draftDetailProject = "draft_detail.project"
     static let draftDetailPleaseSelect = "draft_detail.please_select"
     static let draftDetailBinding = "draft_detail.binding"
+    static let draftDetailUploading = "draft_detail.uploading"
     static let draftDetailBindAndUpload = "draft_detail.bind_and_upload"
     static let draftDetailBindingDescription = "draft_detail.binding_description"
     static let draftDetailRecordingNotFound = "draft_detail.recording_not_found"

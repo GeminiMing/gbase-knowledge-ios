@@ -78,21 +78,34 @@ struct DraftDetailView: View {
                             }
                         }
                     }) {
-                        HStack {
-                            Spacer()
-                            if viewModel.isBinding {
-                                ProgressView()
-                                    .progressViewStyle(.circular)
-                                Text(LocalizedStringKey.draftDetailBinding.localized)
-                                    .padding(.leading, 8)
-                            } else {
-                                Text(LocalizedStringKey.draftDetailBindAndUpload.localized)
-                                    .fontWeight(.semibold)
+                        VStack(spacing: 12) {
+                            HStack {
+                                Spacer()
+                                if viewModel.isBinding {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                    Text(LocalizedStringKey.draftDetailBinding.localized)
+                                        .padding(.leading, 8)
+                                } else if viewModel.isUploading {
+                                    VStack(spacing: 8) {
+                                        HStack {
+                                            Text(LocalizedStringKey.draftDetailUploading.localized)
+                                            Spacer()
+                                            Text("\(Int(viewModel.uploadProgress))%")
+                                                .foregroundColor(.secondary)
+                                        }
+                                        ProgressView(value: viewModel.uploadProgress, total: 100)
+                                            .progressViewStyle(.linear)
+                                    }
+                                } else {
+                                    Text(LocalizedStringKey.draftDetailBindAndUpload.localized)
+                                        .fontWeight(.semibold)
+                                }
+                                Spacer()
                             }
-                            Spacer()
                         }
                     }
-                    .disabled(viewModel.selectedProjectId == nil || viewModel.isBinding)
+                    .disabled(viewModel.selectedProjectId == nil || viewModel.isBinding || viewModel.isUploading)
                 }
             }
             .navigationTitle(LocalizedStringKey.draftDetailTitle.localized)
@@ -154,6 +167,8 @@ final class DraftDetailViewModel: ObservableObject {
     @Published var selectedProjectId: String?
     @Published var customName: String = ""
     @Published var isBinding: Bool = false
+    @Published var isUploading: Bool = false
+    @Published var uploadProgress: Double = 0
     @Published var bindingSuccess: Bool = false
     @Published var errorMessage: String?
 
@@ -230,6 +245,13 @@ final class DraftDetailViewModel: ObservableObject {
         guard let container else { throw APIError.networkUnavailable }
         guard let meetingId = recording.meetingId else { return }
 
+        isUploading = true
+        uploadProgress = 0
+        defer {
+            isUploading = false
+            uploadProgress = 0
+        }
+
         let fileURL = URL(fileURLWithPath: recording.localFilePath)
         let actualStart = recording.actualStartAt ?? Date()
         let actualEnd = recording.actualEndAt ?? Date()
@@ -244,6 +266,7 @@ final class DraftDetailViewModel: ObservableObject {
             customName: recording.customName,
             progressHandler: { [weak self] progress in
                 Task { @MainActor in
+                    self?.uploadProgress = progress
                     try? container.recordingLocalStore.update(
                         id: recording.id,
                         status: progress >= 100 ? .completed : .uploading,
