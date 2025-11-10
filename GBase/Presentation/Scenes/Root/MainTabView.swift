@@ -1,59 +1,72 @@
 import SwiftUI
+import WebKit
 
 struct MainTabView: View {
     @Environment(\.diContainer) private var container
     @EnvironmentObject private var appState: AppState
     @State private var showingQuickRecorder = false
     @State private var recordingMeeting: Meeting?
+    @State private var showingWebView = false
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            TabView(selection: $appState.selectedTab) {
-                ProjectsView()
-                    .tabItem {
-                        Label(LocalizedStringKey.tabProjects.localized, systemImage: "folder")
-                    }
-                    .tag(AppState.MainTab.projects)
+        TabView(selection: $appState.selectedTab) {
+            ProjectsView()
+                .tabItem {
+                    Label(LocalizedStringKey.tabProjects.localized, systemImage: "folder")
+                }
+                .tag(AppState.MainTab.projects)
 
-                // Placeholder for center button
-                Color.clear
-                    .tabItem {
-                        Label("", systemImage: "")
-                    }
-                    .tag(AppState.MainTab.recorder)
+            // Center recorder button in tab bar
+            Color.clear
+                .tabItem {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "00a4d6"))
+                            .frame(width: 56, height: 56)
+                            .shadow(color: Color(hex: "00a4d6").opacity(0.3), radius: 4, x: 0, y: 2)
 
-                DraftsView()
-                    .tabItem {
-                        Label(LocalizedStringKey.tabDrafts.localized, systemImage: "tray")
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
                     }
-                    .tag(AppState.MainTab.drafts)
-                    .onAppear {
-                        // 切换到草稿页时清除选中的项目
-                        if appState.selectedTab == .drafts {
-                            print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
-                            appState.selectedProject = nil
-                        }
-                    }
+                    .offset(y: -8)
+                }
+                .tag(AppState.MainTab.recorder)
 
-                ProfileView()
-                    .tabItem {
-                        Label(LocalizedStringKey.tabProfile.localized, systemImage: "person.circle")
+            DraftsView()
+                .tabItem {
+                    Label(LocalizedStringKey.tabDrafts.localized, systemImage: "tray")
+                }
+                .tag(AppState.MainTab.drafts)
+                .onAppear {
+                    // 切换到草稿页时清除选中的项目
+                    if appState.selectedTab == .drafts {
+                        print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
+                        appState.selectedProject = nil
                     }
-                    .tag(AppState.MainTab.profile)
-                    .onAppear {
-                        // 切换到个人页时清除选中的项目
-                        if appState.selectedTab == .profile {
-                            print("👤 [MainTabView] Switched to profile tab, clearing selectedProject")
-                            appState.selectedProject = nil
-                        }
-                    }
-            }
-            .navigationTitle(appState.authContext?.user.name ?? "")
+                }
 
-            // Center floating record button
-            centerRecordButton
-                .offset(y: -25)
+            ProfileView()
+                .tabItem {
+                    Label(LocalizedStringKey.tabProfile.localized, systemImage: "person.circle")
+                }
+                .tag(AppState.MainTab.profile)
+                .onAppear {
+                    // 切换到个人页时清除选中的项目
+                    if appState.selectedTab == .profile {
+                        print("👤 [MainTabView] Switched to profile tab, clearing selectedProject")
+                        appState.selectedProject = nil
+                    }
+                }
+
+            // Web view for hub.gbase.ai
+            Color.clear
+                .tabItem {
+                    Label("Hub", systemImage: "globe")
+                }
+                .tag(AppState.MainTab.hub)
         }
+        .navigationTitle(appState.authContext?.user.name ?? "")
         .onChange(of: appState.selectedTab) { newTab in
             // Intercept recorder tab selection
             if newTab == .recorder {
@@ -61,6 +74,14 @@ struct MainTabView: View {
                 // Reset to previous valid tab
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     if appState.selectedTab == .recorder {
+                        appState.selectedTab = .projects
+                    }
+                }
+            } else if newTab == .hub {
+                showingWebView = true
+                // Reset to previous valid tab
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if appState.selectedTab == .hub {
                         appState.selectedTab = .projects
                     }
                 }
@@ -75,39 +96,8 @@ struct MainTabView: View {
                 QuickRecorderView(viewModel: viewModel, meeting: recordingMeeting)
             }
         }
-    }
-
-    private var centerRecordButton: some View {
-        Button(action: {
-            handleRecordButtonTap()
-        }) {
-            ZStack {
-                // Ripple effect circles
-                Circle()
-                    .fill(Color(hex: "00a4d6").opacity(0.3))
-                    .frame(width: 70, height: 70)
-                    .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: pulseAnimation)
-
-                Circle()
-                    .fill(Color(hex: "00a4d6").opacity(0.5))
-                    .frame(width: 60, height: 60)
-                    .scaleEffect(pulseAnimation ? 1.1 : 1.0)
-                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true).delay(0.2), value: pulseAnimation)
-
-                // Main button
-                Circle()
-                    .fill(Color(hex: "00a4d6"))
-                    .frame(width: 56, height: 56)
-                    .shadow(color: Color(hex: "00a4d6").opacity(0.5), radius: 8, x: 0, y: 4)
-
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(.white)
-            }
-        }
-        .onAppear {
-            pulseAnimation = true
+        .sheet(isPresented: $showingWebView) {
+            WebView(url: URL(string: "https://hub.gbase.ai")!)
         }
     }
 
@@ -154,8 +144,6 @@ struct MainTabView: View {
             await viewModel.startRecording()
         }
     }
-
-    @State private var pulseAnimation = false
 }
 
 // Quick Recorder Sheet View
@@ -263,6 +251,21 @@ struct QuickRecorderView: View {
     MainTabView()
         .environment(\.diContainer, .preview)
         .environmentObject(DIContainer.preview.appState)
+}
+
+// MARK: - WebView
+struct WebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        // No update needed
+    }
 }
 
 // MARK: - Color Extension for Hex Support
