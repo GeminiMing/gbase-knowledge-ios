@@ -59,11 +59,7 @@ struct MainTabView: View {
                 }
 
             // Web view for hub.gbase.ai as a full page
-            NavigationStack {
-                WebView(url: URL(string: "https://hub.gbase.ai")!)
-                    .navigationTitle("Hub")
-                    .navigationBarTitleDisplayMode(.inline)
-            }
+            HubView()
             .tabItem {
                 Label("Hub", systemImage: "globe")
             }
@@ -241,6 +237,50 @@ struct QuickRecorderView: View {
     MainTabView()
         .environment(\.diContainer, .preview)
         .environmentObject(DIContainer.preview.appState)
+}
+
+// MARK: - HubView with Auto Login
+struct HubView: View {
+    @Environment(\.diContainer) private var container
+    @State private var hubURL: URL?
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let url = hubURL {
+                    WebView(url: url)
+                } else {
+                    ProgressView("Loading...")
+                }
+            }
+            .navigationTitle("Hub")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .task {
+            await loadHubURL()
+        }
+    }
+
+    private func loadHubURL() async {
+        // Try to load saved credentials
+        guard let credentials = try? await container.credentialsStore.loadCredentials() else {
+            // No credentials, just load Hub without auto-login
+            hubURL = URL(string: "https://hub.gbase.ai")
+            return
+        }
+
+        // Build URL with auto-login parameters
+        var components = URLComponents(string: "https://hub.gbase.ai/auth/login")!
+        components.queryItems = [
+            URLQueryItem(name: "auto_login", value: "1"),
+            URLQueryItem(name: "auto_email", value: credentials.email),
+            URLQueryItem(name: "auto_password", value: credentials.password),
+            URLQueryItem(name: "auto_remember", value: "1")
+        ]
+
+        hubURL = components.url ?? URL(string: "https://hub.gbase.ai")
+        print("🌐 [HubView] Loading Hub with auto-login for: \(credentials.email)")
+    }
 }
 
 // MARK: - WebView
