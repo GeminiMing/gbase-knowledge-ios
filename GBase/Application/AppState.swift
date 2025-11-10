@@ -5,6 +5,7 @@ import Combine
 public final class AppState: ObservableObject {
     public enum MainTab: Hashable {
         case projects
+        case recorder  // Center button (not a real tab)
         case drafts
         case profile
     }

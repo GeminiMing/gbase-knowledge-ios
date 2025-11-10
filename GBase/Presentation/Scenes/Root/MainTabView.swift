@@ -7,13 +7,20 @@ struct MainTabView: View {
     @State private var recordingMeeting: Meeting?
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             TabView(selection: $appState.selectedTab) {
                 ProjectsView()
                     .tabItem {
                         Label(LocalizedStringKey.tabProjects.localized, systemImage: "folder")
                     }
                     .tag(AppState.MainTab.projects)
+
+                // Placeholder for center button
+                Color.clear
+                    .tabItem {
+                        Label("", systemImage: "")
+                    }
+                    .tag(AppState.MainTab.recorder)
 
                 DraftsView()
                     .tabItem {
@@ -43,14 +50,19 @@ struct MainTabView: View {
             }
             .navigationTitle(appState.authContext?.user.name ?? "")
 
-            // Quick record floating button
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    quickRecordButton
-                        .padding(.trailing, 24)
-                        .padding(.bottom, 80)
+            // Center floating record button
+            centerRecordButton
+                .offset(y: -25)
+        }
+        .onChange(of: appState.selectedTab) { newTab in
+            // Intercept recorder tab selection
+            if newTab == .recorder {
+                handleRecordButtonTap()
+                // Reset to previous valid tab
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if appState.selectedTab == .recorder {
+                        appState.selectedTab = .projects
+                    }
                 }
             }
         }
@@ -65,69 +77,29 @@ struct MainTabView: View {
         }
     }
 
-    private var quickRecordButton: some View {
+    private var centerRecordButton: some View {
         Button(action: {
-            Task {
-                guard let viewModel = appState.recorderViewModel else { return }
-
-                print("🔴 [MainTabView] Quick record button clicked")
-                print("🔴 [MainTabView] appState.selectedProject: \(String(describing: appState.selectedProject))")
-                print("🔴 [MainTabView] Current tab: \(appState.selectedTab)")
-
-                // 如果有选中的项目,为该项目创建会议并绑定
-                if let project = appState.selectedProject {
-                    print("✅ [MainTabView] Project found: \(project.title)")
-                    do {
-                        let meeting = try await container.createMeetingUseCase.execute(
-                            projectId: project.id,
-                            title: project.title.isEmpty ? "快速录音" : project.title,
-                            meetingTime: Date(),
-                            location: nil,
-                            description: nil
-                        )
-                        recordingMeeting = meeting
-                        viewModel.prepare(for: project, meeting: meeting)
-                    } catch {
-                        print("❌ 创建会议失败: \(error)")
-                        // 如果创建会议失败,仍然允许录音,但作为草稿
-                        recordingMeeting = nil
-                        viewModel.prepareForQuickRecording()
-                    }
-                } else {
-                    // 没有选中项目,作为草稿录音
-                    print("⚠️ [MainTabView] No project selected, using draft mode")
-                    recordingMeeting = nil
-                    viewModel.prepareForQuickRecording()
-                }
-
-                await MainActor.run {
-                    showingQuickRecorder = true
-                }
-
-                // Start recording immediately after showing the sheet
-                try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds delay for sheet animation
-                await viewModel.startRecording()
-            }
+            handleRecordButtonTap()
         }) {
             ZStack {
                 // Ripple effect circles
                 Circle()
-                    .fill(Color.red.opacity(0.3))
+                    .fill(Color(hex: "00a4d6").opacity(0.3))
                     .frame(width: 70, height: 70)
                     .scaleEffect(pulseAnimation ? 1.2 : 1.0)
                     .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: pulseAnimation)
 
                 Circle()
-                    .fill(Color.red.opacity(0.5))
+                    .fill(Color(hex: "00a4d6").opacity(0.5))
                     .frame(width: 60, height: 60)
                     .scaleEffect(pulseAnimation ? 1.1 : 1.0)
                     .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true).delay(0.2), value: pulseAnimation)
 
                 // Main button
                 Circle()
-                    .fill(Color.red)
+                    .fill(Color(hex: "00a4d6"))
                     .frame(width: 56, height: 56)
-                    .shadow(color: Color.red.opacity(0.5), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color(hex: "00a4d6").opacity(0.5), radius: 8, x: 0, y: 4)
 
                 Image(systemName: "mic.fill")
                     .font(.system(size: 24))
@@ -136,6 +108,50 @@ struct MainTabView: View {
         }
         .onAppear {
             pulseAnimation = true
+        }
+    }
+
+    private func handleRecordButtonTap() {
+        Task {
+            guard let viewModel = appState.recorderViewModel else { return }
+
+            print("🔴 [MainTabView] Quick record button clicked")
+            print("🔴 [MainTabView] appState.selectedProject: \(String(describing: appState.selectedProject))")
+            print("🔴 [MainTabView] Current tab: \(appState.selectedTab)")
+
+            // 如果有选中的项目,为该项目创建会议并绑定
+            if let project = appState.selectedProject {
+                print("✅ [MainTabView] Project found: \(project.title)")
+                do {
+                    let meeting = try await container.createMeetingUseCase.execute(
+                        projectId: project.id,
+                        title: project.title.isEmpty ? "快速录音" : project.title,
+                        meetingTime: Date(),
+                        location: nil,
+                        description: nil
+                    )
+                    recordingMeeting = meeting
+                    viewModel.prepare(for: project, meeting: meeting)
+                } catch {
+                    print("❌ 创建会议失败: \(error)")
+                    // 如果创建会议失败,仍然允许录音,但作为草稿
+                    recordingMeeting = nil
+                    viewModel.prepareForQuickRecording()
+                }
+            } else {
+                // 没有选中项目,作为草稿录音
+                print("⚠️ [MainTabView] No project selected, using draft mode")
+                recordingMeeting = nil
+                viewModel.prepareForQuickRecording()
+            }
+
+            await MainActor.run {
+                showingQuickRecorder = true
+            }
+
+            // Start recording immediately after showing the sheet
+            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds delay for sheet animation
+            await viewModel.startRecording()
         }
     }
 
@@ -157,7 +173,7 @@ struct QuickRecorderView: View {
                 HStack(spacing: 4) {
                     ForEach(Array(viewModel.waveformSamples.enumerated()), id: \.offset) { _, level in
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.red)
+                            .fill(Color(hex: "00a4d6"))
                             .frame(width: 6, height: max(20, level * 100))
                     }
                 }
@@ -189,7 +205,7 @@ struct QuickRecorderView: View {
                 }) {
                     ZStack {
                         Circle()
-                            .fill(Color.red)
+                            .fill(Color(hex: "00a4d6"))
                             .frame(width: 80, height: 80)
 
                         if case .recording = viewModel.status {
@@ -247,5 +263,33 @@ struct QuickRecorderView: View {
     MainTabView()
         .environment(\.diContainer, .preview)
         .environmentObject(DIContainer.preview.appState)
+}
+
+// MARK: - Color Extension for Hex Support
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
 }
 
