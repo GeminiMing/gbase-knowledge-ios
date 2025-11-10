@@ -32,7 +32,22 @@ public final class AudioPlayerService: NSObject {
         stop()
         try configureSession()
 
-        let audioPlayer = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileType.wav.rawValue)
+        // Detect file type from extension
+        let fileExtension = url.pathExtension.lowercased()
+        let fileTypeHint: String? = {
+            switch fileExtension {
+            case "wav":
+                return AVFileType.wav.rawValue
+            case "m4a", "aac":
+                return AVFileType.m4a.rawValue  // M4A handles AAC audio
+            case "mp3":
+                return AVFileType.mp3.rawValue
+            default:
+                return nil // Let AVAudioPlayer auto-detect
+            }
+        }()
+
+        let audioPlayer = try AVAudioPlayer(contentsOf: url, fileTypeHint: fileTypeHint)
         audioPlayer.delegate = self
         audioPlayer.prepareToPlay()
 

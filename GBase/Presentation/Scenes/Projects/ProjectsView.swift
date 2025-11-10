@@ -4,10 +4,6 @@ struct ProjectsView: View {
     @Environment(\.diContainer) private var container
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel = ProjectsViewModel()
-    @State private var isProcessingSelection = false
-    @State private var destinationProject: Project?
-    @State private var destinationMeeting: Meeting?
-    @State private var navigateToRecorder = false
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
@@ -32,15 +28,21 @@ struct ProjectsView: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(Array(viewModel.filteredProjects.enumerated()), id: \.element.id) { index, project in
-                                    projectCard(project: project)
-                                        .onTapGesture {
-                                            handleSelection(project)
+                                    NavigationLink(destination: ProjectDetailView(project: project)) {
+                                        projectCard(project: project)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .onTapGesture {
+                                        // 设置选中的项目
+                                        print("📋 [ProjectsView] Setting selectedProject to: \(project.title)")
+                                        appState.selectedProject = project
+                                        print("📋 [ProjectsView] appState.selectedProject is now: \(String(describing: appState.selectedProject?.title))")
+                                    }
+                                    .onAppear {
+                                        if index == viewModel.filteredProjects.count - 1 {
+                                            Task { await viewModel.loadMore() }
                                         }
-                                        .onAppear {
-                                            if index == viewModel.filteredProjects.count - 1 {
-                                                Task { await viewModel.loadMore() }
-                                            }
-                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal, 16)
@@ -49,26 +51,10 @@ struct ProjectsView: View {
                     }
                 }
             }
-            .navigationDestination(isPresented: $navigateToRecorder) {
-                if let project = destinationProject, let meeting = destinationMeeting {
-                    ProjectRecorderView(project: project, meeting: meeting)
-                } else {
-                    EmptyView()
-                }
-            }
             .overlay {
                 if viewModel.isLoading && viewModel.projects.isEmpty {
                     ProgressView()
                         .progressViewStyle(.circular)
-                }
-                if isProcessingSelection {
-                    ZStack {
-                        Color.black.opacity(0.2).ignoresSafeArea()
-                        ProgressView("创建会议中...")
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(12)
-                    }
                 }
             }
             .navigationTitle(LocalizedStringKey.projectsTitle.localized)
@@ -89,6 +75,9 @@ struct ProjectsView: View {
         .onAppear {
             viewModel.configure(container: container)
             Task { await viewModel.refresh() }
+            // 回到项目列表时清除选中的项目
+            print("📋 [ProjectsView] View appeared, clearing selectedProject")
+            appState.selectedProject = nil
         }
     }
 
@@ -214,34 +203,6 @@ struct ProjectsView: View {
             return .green
         case .sharee:
             return .orange
-        }
-    }
-
-    private func handleSelection(_ project: Project) {
-        guard !isProcessingSelection else { return }
-        isProcessingSelection = true
-
-        Task {
-            do {
-                let meeting = try await container.createMeetingUseCase.execute(projectId: project.id,
-                                                                                title: project.title.isEmpty ? LocalizedStringKey.projectsTemporaryMeeting.localized : project.title,
-                                                                                meetingTime: Date(),
-                                                                                location: nil,
-                                                                                description: nil)
-
-                await MainActor.run {
-                    destinationProject = project
-                    destinationMeeting = meeting
-                    appState.selectedProject = project
-                    navigateToRecorder = true
-                    isProcessingSelection = false
-                }
-            } catch {
-                await MainActor.run {
-                    viewModel.errorMessage = error.localizedDescription
-                    isProcessingSelection = false
-                }
-            }
         }
     }
 }

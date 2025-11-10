@@ -5,8 +5,8 @@ import AVFoundation
 import CoreMedia
 
 @MainActor
-final class RecorderViewModel: NSObject, ObservableObject {
-    enum Status: Equatable {
+public final class RecorderViewModel: NSObject, ObservableObject {
+    public enum Status: Equatable {
         case idle
         case recording(duration: TimeInterval)
         case processing
@@ -53,11 +53,13 @@ final class RecorderViewModel: NSObject, ObservableObject {
     }
 
     func prepare(for project: Project, meeting: Meeting) {
+        print("🎤 [RecorderViewModel] prepare called for project: \(project.title), meeting: \(meeting.id)")
         selectedProjectId = project.id
         selectedProjectTitle = project.title
         meetingTitle = meeting.title
         preparedMeeting = meeting
         isDraftMode = false
+        print("🎤 [RecorderViewModel] isDraftMode set to: \(isDraftMode)")
 
         if !projectOptions.contains(where: { $0.id == project.id }) {
             projectOptions.insert(ProjectOption(id: project.id, title: project.title), at: 0)
@@ -68,11 +70,13 @@ final class RecorderViewModel: NSObject, ObservableObject {
 
     // New: Prepare for quick recording without project
     func prepareForQuickRecording() {
+        print("🎤 [RecorderViewModel] prepareForQuickRecording called")
         selectedProjectId = nil
         selectedProjectTitle = nil
         meetingTitle = ""
         preparedMeeting = nil
         isDraftMode = true
+        print("🎤 [RecorderViewModel] isDraftMode set to: \(isDraftMode)")
     }
 
     func loadProjects() async {
@@ -144,6 +148,11 @@ final class RecorderViewModel: NSObject, ObservableObject {
         container.audioRecorderService.stopRecording()
         status = .processing
 
+        print("🎤 [RecorderViewModel] stopRecording called")
+        print("🎤 [RecorderViewModel] isDraftMode: \(isDraftMode)")
+        print("🎤 [RecorderViewModel] preparedMeeting: \(String(describing: preparedMeeting))")
+        print("🎤 [RecorderViewModel] selectedProjectId: \(String(describing: selectedProjectId))")
+
         do {
             let fileSize = try container.fileStorageService.fileSize(at: fileURL)
             let duration = try await durationOfFile(at: fileURL)
@@ -167,16 +176,21 @@ final class RecorderViewModel: NSObject, ObservableObject {
                 actualEndAt: Date()
             )
 
+            print("🎤 [RecorderViewModel] Created recording with meetingId: \(String(describing: recording.meetingId)), projectId: \(String(describing: recording.projectId))")
+
             try container.recordingLocalStore.upsert(recording)
             await loadLocalRecordings()
 
             // Only upload if not in draft mode (has project binding)
             if !isDraftMode {
+                print("🎤 [RecorderViewModel] Uploading recording (not draft mode)")
                 try await upload(recording: recording)
             } else {
+                print("🎤 [RecorderViewModel] Saving as draft (draft mode)")
                 status = .idle
             }
         } catch {
+            print("❌ [RecorderViewModel] Error in stopRecording: \(error)")
             errorMessage = error.localizedDescription
             status = .idle
         }
@@ -358,7 +372,7 @@ final class RecorderViewModel: NSObject, ObservableObject {
 }
 
 extension RecorderViewModel: AudioRecorderServiceDelegate {
-    nonisolated func recorderDidUpdate(duration: TimeInterval, level: Float) {
+    nonisolated public func recorderDidUpdate(duration: TimeInterval, level: Float) {
         Task { @MainActor [weak self] in
             guard let self else { return }
             self.status = .recording(duration: duration)
@@ -366,11 +380,11 @@ extension RecorderViewModel: AudioRecorderServiceDelegate {
         }
     }
 
-    nonisolated func recorderDidFinish(successfully flag: Bool, fileURL: URL?) {
+    nonisolated public func recorderDidFinish(successfully flag: Bool, fileURL: URL?) {
         // 录音完成后交给 stopRecording 逻辑
     }
 
-    nonisolated func recorderDidFail(_ error: Error) {
+    nonisolated public func recorderDidFail(_ error: Error) {
         Task { @MainActor [weak self] in
             self?.errorMessage = error.localizedDescription
             self?.status = .idle
@@ -379,13 +393,13 @@ extension RecorderViewModel: AudioRecorderServiceDelegate {
 }
 
 extension RecorderViewModel: AudioPlayerServiceDelegate {
-    func playerDidStart(url: URL) {}
+    public func playerDidStart(url: URL) {}
 
-    func playerDidFinish() {
+    public func playerDidFinish() {
         playingRecordingId = nil
     }
 
-    func playerDidFail(_ error: Error) {
+    public func playerDidFail(_ error: Error) {
         playingRecordingId = nil
         errorMessage = error.localizedDescription
     }

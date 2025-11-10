@@ -70,12 +70,12 @@
 
 /* Tab Bar */
 "tab.projects" = "项目";
-"tab.drafts" = "草稿箱";
+"tab.drafts" = "本地录音";
 "tab.profile" = "我的";
 
 /* Drafts */
-"drafts.title" = "草稿箱";
-"drafts.empty_title" = "暂无草稿";
+"drafts.title" = "本地录音";
+"drafts.empty_title" = "暂无录音";
 "drafts.empty_message" = "点击右下角红色按钮开始快速录音";
 "draft_detail.title" = "草稿详情";
 "draft_detail.recording_info" = "录音信息";
@@ -90,7 +90,7 @@
 "draft_detail.project" = "项目";
 "draft_detail.please_select" = "请选择项目";
 "draft_detail.binding" = "绑定中...";
-"draft_detail.bind_and_upload" = "绑定并上传";
+"draft_detail.bind_and_upload" = "上传";
 "draft_detail.binding_description" = "由草稿绑定创建";
 "draft_detail.recording_not_found" = "未找到录音";
 
@@ -107,3 +107,5 @@
 "quick_recorder.default_name" = "快速录音";
 
 "draft_detail.uploading" = "上传中...";
+"watch_recording.saved_to_iphone" = "已保存至iPhone本地录音";
+"watch_recording.default_name" = "Watch录音";

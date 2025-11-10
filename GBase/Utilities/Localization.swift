@@ -174,6 +174,10 @@ enum LocalizedStringKey {
     static let quickRecorderTitle = "quick_recorder.title"
     static let quickRecorderDefaultName = "quick_recorder.default_name"
 
+    // Watch Recording
+    static let watchRecordingSavedToiPhone = "watch_recording.saved_to_iphone"
+    static let watchRecordingDefaultName = "watch_recording.default_name"
+
     // Waveform
     static let waveformAccessibilityLabel = "waveform.accessibility_label"
 }

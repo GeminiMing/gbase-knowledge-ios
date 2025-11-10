@@ -70,12 +70,12 @@
 
 /* Tab Bar */
 "tab.projects" = "プロジェクト";
-"tab.drafts" = "下書き";
+"tab.drafts" = "ローカル録音";
 "tab.profile" = "マイ";
 
 /* Drafts */
-"drafts.title" = "下書き";
-"drafts.empty_title" = "下書きがありません";
+"drafts.title" = "ローカル録音";
+"drafts.empty_title" = "録音がありません";
 "drafts.empty_message" = "右下の赤いボタンをタップして録音を開始";
 "draft_detail.title" = "下書き詳細";
 "draft_detail.recording_info" = "録音情報";
@@ -90,7 +90,7 @@
 "draft_detail.project" = "プロジェクト";
 "draft_detail.please_select" = "プロジェクトを選択してください";
 "draft_detail.binding" = "バインド中...";
-"draft_detail.bind_and_upload" = "バインドしてアップロード";
+"draft_detail.bind_and_upload" = "アップロード";
 "draft_detail.binding_description" = "下書きバインドから作成";
 "draft_detail.recording_not_found" = "録音が見つかりません";
 
@@ -99,6 +99,8 @@
 "quick_recorder.default_name" = "クイック録音";
 
 /* Waveform */
-"waveform.accessibility_label" = "録音波形";
+"waveform.accessibility_label" = "Recording Waveform";
 
 "draft_detail.uploading" = "Uploading...";
+"watch_recording.saved_to_iphone" = "Saved to iPhone Local Recording";
+"watch_recording.default_name" = "Watch Recording";

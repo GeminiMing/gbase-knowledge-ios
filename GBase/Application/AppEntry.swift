@@ -11,11 +11,6 @@ struct GBaseKnowledgeApp: App {
         #if DEBUG
         debugLocalization()
         #endif
-
-        // Initialize WatchConnectivityService
-        // Note: This will activate the WCSession
-        _ = WatchConnectivityService.shared
-        print("📱 [iPhone] WatchConnectivityService initialized")
     }
 
     var body: some Scene {
@@ -23,6 +18,19 @@ struct GBaseKnowledgeApp: App {
             RootView()
                 .environment(\.diContainer, container)
                 .environmentObject(container.appState)
+                .onAppear {
+                    // Initialize WatchConnectivityService after app appears
+                    // This ensures activation happens after app is fully launched
+                    _ = WatchConnectivityService.shared
+                    print("📱 [iPhone] WatchConnectivityService initialized")
+
+                    // Initialize RecorderViewModel on first appear
+                    if container.appState.recorderViewModel == nil {
+                        let recorderViewModel = RecorderViewModel()
+                        recorderViewModel.configure(container: container, shouldLoadProjects: true)
+                        container.appState.recorderViewModel = recorderViewModel
+                    }
+                }
         }
     }
     

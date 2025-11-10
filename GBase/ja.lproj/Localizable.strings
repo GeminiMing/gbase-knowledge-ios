@@ -70,12 +70,12 @@
 
 /* Tab Bar */
 "tab.projects" = "Projects";
-"tab.drafts" = "Drafts";
+"tab.drafts" = "Local Recordings";
 "tab.profile" = "My";
 
 /* Drafts */
-"drafts.title" = "Drafts";
-"drafts.empty_title" = "No Drafts";
+"drafts.title" = "Local Recordings";
+"drafts.empty_title" = "No Recordings";
 "drafts.empty_message" = "Tap the red button at the bottom right to start recording";
 "draft_detail.title" = "Draft Details";
 "draft_detail.recording_info" = "Recording Info";
@@ -90,7 +90,7 @@
 "draft_detail.project" = "Project";
 "draft_detail.please_select" = "Please select a project";
 "draft_detail.binding" = "Binding...";
-"draft_detail.bind_and_upload" = "Bind & Upload";
+"draft_detail.bind_and_upload" = "Upload";
 "draft_detail.binding_description" = "Created from draft binding";
 "draft_detail.recording_not_found" = "Recording not found";
 
@@ -99,6 +99,8 @@
 "quick_recorder.default_name" = "Quick Record";
 
 /* Waveform */
-"waveform.accessibility_label" = "Recording Waveform";
+"waveform.accessibility_label" = "録音波形";
 
 "draft_detail.uploading" = "アップロード中...";
+"watch_recording.saved_to_iphone" = "iPhoneのローカル録音に保存されました";
+"watch_recording.default_name" = "Watch録音";

@@ -3,16 +3,17 @@ import Combine
 import SwiftUI
 
 @MainActor
-final class DraftsViewModel: ObservableObject {
-    @Published var drafts: [Recording] = []
+final class ProjectDetailViewModel: ObservableObject {
+    @Published var recordings: [Recording] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var playingRecordingId: String?
 
     private var container: DIContainer?
+    private let projectId: String
 
-    init(container: DIContainer? = nil) {
-        self.container = container
+    init(projectId: String) {
+        self.projectId = projectId
     }
 
     func configure(container: DIContainer) {
@@ -20,7 +21,7 @@ final class DraftsViewModel: ObservableObject {
         container.audioPlayerService.delegate = self
     }
 
-    func loadDrafts() async {
+    func loadRecordings() async {
         isLoading = true
         defer { isLoading = false }
 
@@ -30,15 +31,15 @@ final class DraftsViewModel: ObservableObject {
         }
 
         do {
-            let fetchedDrafts = try container.fetchDraftsUseCase.execute()
+            let fetchedRecordings = try container.recordingLocalStore.fetch(projectId: projectId, status: nil)
             // 按创建时间倒序排列,最新的在最上方
-            drafts = fetchedDrafts.sorted { $0.createdAt > $1.createdAt }
+            recordings = fetchedRecordings.sorted { $0.createdAt > $1.createdAt }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func deleteDraft(_ recording: Recording) async {
+    func deleteRecording(_ recording: Recording) async {
         guard let container else { return }
 
         do {
@@ -46,8 +47,10 @@ final class DraftsViewModel: ObservableObject {
                 container.audioPlayerService.stop()
             }
 
-            try container.deleteDraftUseCase.execute(recordingId: recording.id)
-            await loadDrafts()
+            try container.recordingLocalStore.remove(recording.id)
+            let fileURL = URL(fileURLWithPath: recording.localFilePath)
+            try container.fileStorageService.removeFile(at: fileURL)
+            await loadRecordings()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -92,7 +95,7 @@ final class DraftsViewModel: ObservableObject {
     }
 }
 
-extension DraftsViewModel: AudioPlayerServiceDelegate {
+extension ProjectDetailViewModel: AudioPlayerServiceDelegate {
     func playerDidStart(url: URL) {}
 
     func playerDidFinish() {

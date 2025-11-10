@@ -21,10 +21,41 @@ struct ContentView: View {
                     IdleView(viewModel: viewModel)
                 }
             }
+
+            // Save confirmation toast
+            if viewModel.showSaveConfirmation {
+                VStack {
+                    Spacer()
+                    Text(viewModel.saveConfirmationMessage)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.green.opacity(0.9))
+                        .cornerRadius(20)
+                        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, 20)
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.showSaveConfirmation)
+            }
         }
         .onAppear {
             viewModel.requestMicrophonePermission()
         }
+        .gesture(
+            // Double-tap gesture to toggle recording
+            TapGesture(count: 2)
+                .onEnded { _ in
+                    Task {
+                        if viewModel.isRecording {
+                            await viewModel.stopRecording()
+                        } else {
+                            await viewModel.startRecording()
+                        }
+                    }
+                }
+        )
     }
 }
 
@@ -69,6 +100,7 @@ struct IdleView: View {
                 }
             }
             .buttonStyle(.plain)
+            .handGestureShortcut(.primaryAction)
 
             // Hint text
             Text("Tap to Record")
@@ -151,6 +183,7 @@ struct RecordingView: View {
                 }
             }
             .buttonStyle(.plain)
+            .handGestureShortcut(.primaryAction)
 
             // Stop hint
             Text("Tap to Stop")

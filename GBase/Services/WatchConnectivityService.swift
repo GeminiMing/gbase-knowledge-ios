@@ -28,13 +28,17 @@ public class WatchConnectivityService: NSObject, ObservableObject {
     }
 
     private func setupSession() {
+        print("📱 [iPhone] Setting up WCSession...")
+
         guard WCSession.isSupported() else {
-            print("WatchConnectivity is not supported on this device")
+            print("❌ [iPhone] WatchConnectivity is not supported on this device")
             return
         }
 
         session = WCSession.default
         session?.delegate = self
+
+        print("📱 [iPhone] Activating WCSession...")
         session?.activate()
     }
 
@@ -69,11 +73,15 @@ extension WatchConnectivityService: WCSessionDelegate {
         }
 
         if let error = error {
-            print("❌ [iPhone] WCSession activation failed: \(error)")
+            print("❌ [iPhone] WCSession activation failed: \(error.localizedDescription)")
+            print("❌ [iPhone] Error details: \(error)")
+            print("📱 [iPhone] Activation state: \(activationState.rawValue)")
+            print("📱 [iPhone] Session info - isPaired: \(session.isPaired), isWatchAppInstalled: \(session.isWatchAppInstalled), isReachable: \(session.isReachable)")
         } else {
             print("✅ [iPhone] WCSession activated successfully with state: \(activationState.rawValue)")
             print("📱 [iPhone] Is paired: \(session.isPaired)")
             print("📱 [iPhone] Is watch app installed: \(session.isWatchAppInstalled)")
+            print("📱 [iPhone] Is reachable: \(session.isReachable)")
         }
     }
 
@@ -148,12 +156,13 @@ extension WatchConnectivityService: WCSessionDelegate {
             let destinationURL = try fileStorageService.saveRecordingFile(from: file.fileURL, fileName: fileName)
 
             // Create Recording entity as draft
+            let watchRecordingName = NSLocalizedString(LocalizedStringKey.watchRecordingDefaultName.localized, comment: "")
             let recording = Recording(
                 id: UUID().uuidString,
                 meetingId: nil,  // Draft - no meeting
                 projectId: nil,  // Draft - no project
                 fileName: fileName,
-                customName: "Watch Recording \\(formatDate(Date(timeIntervalSince1970: timestamp)))",
+                customName: "\(watchRecordingName) \(formatDate(Date(timeIntervalSince1970: timestamp)))",
                 localFilePath: destinationURL.path,
                 fileSize: Int64(fileSize),
                 duration: duration,

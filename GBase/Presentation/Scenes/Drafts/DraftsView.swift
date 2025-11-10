@@ -3,8 +3,6 @@ import SwiftUI
 struct DraftsView: View {
     @Environment(\.diContainer) private var container
     @StateObject private var viewModel = DraftsViewModel()
-    @State private var selectedDraft: Recording?
-    @State private var showingDetailSheet = false
 
     var body: some View {
         NavigationStack {
@@ -18,11 +16,10 @@ struct DraftsView: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(viewModel.drafts) { draft in
-                                draftCard(draft: draft)
-                                    .onTapGesture {
-                                        selectedDraft = draft
-                                        showingDetailSheet = true
-                                    }
+                                NavigationLink(destination: DraftDetailView(recording: draft)) {
+                                    draftCard(draft: draft)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.horizontal, 16)
@@ -44,6 +41,12 @@ struct DraftsView: View {
                 viewModel.configure(container: container)
                 await viewModel.loadDrafts()
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshRecordings"))) { _ in
+                print("🔄 [DraftsView] Received refresh notification, reloading drafts")
+                Task {
+                    await viewModel.loadDrafts()
+                }
+            }
             .alert(isPresented: Binding<Bool>(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
@@ -51,14 +54,6 @@ struct DraftsView: View {
                 Alert(title: Text(LocalizedStringKey.commonError.localized),
                       message: Text(viewModel.errorMessage ?? ""),
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
-            }
-            .sheet(isPresented: $showingDetailSheet) {
-                if let draft = selectedDraft {
-                    DraftDetailView(recording: draft) {
-                        showingDetailSheet = false
-                        Task { await viewModel.loadDrafts() }
-                    }
-                }
             }
         }
     }
@@ -101,10 +96,7 @@ struct DraftsView: View {
             }
 
             HStack {
-                Button(action: {
-                    selectedDraft = draft
-                    showingDetailSheet = true
-                }) {
+                NavigationLink(destination: DraftDetailView(recording: draft)) {
                     Label(LocalizedStringKey.draftDetailBindAndUpload.localized, systemImage: "link")
                         .font(.subheadline)
                         .foregroundColor(.white)
@@ -113,6 +105,7 @@ struct DraftsView: View {
                         .background(Color.blue)
                         .cornerRadius(8)
                 }
+                .buttonStyle(.plain)
 
                 Button(action: {
                     Task {

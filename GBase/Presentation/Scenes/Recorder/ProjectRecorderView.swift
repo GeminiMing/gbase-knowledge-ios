@@ -3,20 +3,25 @@ import SwiftUI
 struct ProjectRecorderView: View {
     @Environment(\.diContainer) private var container
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appState: AppState
 
     let project: Project
     let meeting: Meeting
 
-    @StateObject private var viewModel = RecorderViewModel()
     @State private var hasInitialized = false
 
+    private var viewModel: RecorderViewModel? {
+        appState.recorderViewModel
+    }
+
     private var isRecording: Bool {
+        guard let viewModel else { return false }
         if case .recording = viewModel.status { return true }
         return false
     }
 
     private var recordingDurationText: String {
-        guard case let .recording(duration) = viewModel.status else { return "" }
+        guard let viewModel, case let .recording(duration) = viewModel.status else { return "" }
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.minute, .second]
         formatter.zeroFormattingBehavior = .pad
@@ -24,11 +29,13 @@ struct ProjectRecorderView: View {
     }
 
     private var uploadProgress: Double? {
+        guard let viewModel else { return nil }
         if case let .uploading(progress) = viewModel.status { return progress }
         return nil
     }
 
     private var isProcessing: Bool {
+        guard let viewModel else { return false }
         switch viewModel.status {
         case .processing, .uploading:
             return true
@@ -42,23 +49,20 @@ struct ProjectRecorderView: View {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                headerSection
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+            if let viewModel = viewModel {
+                VStack(spacing: 0) {
+                    headerSection
+                        .padding(.horizontal)
+                        .padding(.top, 8)
 
-                if viewModel.localRecordings.isEmpty {
-                    emptyStateView
-                        .frame(maxHeight: .infinity)
-                } else {
-                    recordingsList
+                    Spacer()
+
+                    recordControls(viewModel: viewModel)
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
                 }
-
-                Spacer(minLength: 0)
-
-                recordControls
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
+            } else {
+                ProgressView("Loading...")
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -76,15 +80,15 @@ struct ProjectRecorderView: View {
             }
         }
         .alert(isPresented: Binding(
-            get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
+            get: { viewModel?.errorMessage != nil },
+            set: { if !$0 { viewModel?.errorMessage = nil } }
         )) {
             Alert(title: Text(LocalizedStringKey.commonError.localized),
-                  message: Text(viewModel.errorMessage ?? LocalizedStringKey.recorderUnknownError.localized),
+                  message: Text(viewModel?.errorMessage ?? LocalizedStringKey.recorderUnknownError.localized),
                   dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
         }
         .onAppear {
-            guard !hasInitialized else { return }
+            guard !hasInitialized, let viewModel = viewModel else { return }
             hasInitialized = true
             viewModel.configure(container: container, shouldLoadProjects: false)
             viewModel.prepare(for: project, meeting: meeting)
@@ -94,6 +98,17 @@ struct ProjectRecorderView: View {
             // 录音应该在后台继续运行
             container.audioPlayerService.stop()
             // 注意：不在这里调用 cancelRecording，因为切换tab不应该停止录音
+        }
+        .onChange(of: viewModel?.status) { oldValue, newValue in
+            // 当上传完成后自动返回
+            if case .completed = newValue {
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 等待1秒让用户看到完成状态
+                    await MainActor.run {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 
@@ -110,135 +125,7 @@ struct ProjectRecorderView: View {
         .padding(.vertical, 12)
     }
 
-    private var emptyStateView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "waveform")
-                .font(.system(size: 48))
-                .foregroundColor(.secondary.opacity(0.5))
-            Text(LocalizedStringKey.recorderNoRecordings.localized)
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text(LocalizedStringKey.recorderStartRecordingHint.localized)
-                .font(.subheadline)
-                .foregroundColor(.secondary.opacity(0.8))
-        }
-    }
-
-    private var recordingsList: some View {
-        List {
-            ForEach(viewModel.localRecordings) { recording in
-                recordingRow(for: recording)
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowSeparator(.hidden)
-            }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-    }
-
-    private func recordingRow(for recording: Recording) -> some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 16) {
-                Button {
-                    viewModel.togglePlayback(recording: recording)
-                } label: {
-                    Image(systemName: viewModel.isPlaying(recording: recording) ? "pause.circle.fill" : "play.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.accentColor)
-                }
-                .buttonStyle(.plain)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(recording.fileName)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                        .foregroundColor(.primary)
-
-                    HStack(spacing: 8) {
-                        Label(format(duration: recording.duration), systemImage: "clock")
-                        Text("•")
-                        Text(format(date: recording.createdAt))
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                Menu {
-                    if recording.uploadStatus != .completed {
-                        Button {
-                            Task { await viewModel.retryUpload(recording: recording) }
-                        } label: {
-                            Label(LocalizedStringKey.recorderRetryUpload.localized, systemImage: "arrow.clockwise")
-                        }
-                    }
-                    Button(role: .destructive) {
-                        Task { await viewModel.delete(recording: recording) }
-                    } label: {
-                        Label(LocalizedStringKey.recorderDelete.localized, systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .foregroundColor(.secondary)
-                        .padding(8)
-                }
-            }
-            .padding(.vertical, 12)
-
-            if recording.uploadStatus == .uploading || recording.uploadStatus == .pending {
-                uploadProgressView(for: recording)
-                    .padding(.top, 8)
-            } else if recording.uploadStatus == .failed {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                    Text(LocalizedStringKey.recorderUploadFailed.localized)
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                }
-                .padding(.top, 8)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-
-    private func uploadProgressView(for recording: Recording) -> some View {
-        VStack(spacing: 6) {
-            HStack {
-                Text(recording.uploadStatus.displayName)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text(String(format: LocalizedStringKey.recorderUploadProgress.localized, Int(recording.uploadProgress)))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color(.systemGray5))
-                        .frame(height: 4)
-                        .clipShape(Capsule())
-
-                    Rectangle()
-                        .fill(Color.accentColor)
-                        .frame(width: geometry.size.width * CGFloat(recording.uploadProgress) / 100, height: 4)
-                        .clipShape(Capsule())
-                        .animation(.linear(duration: 0.2), value: recording.uploadProgress)
-                }
-            }
-            .frame(height: 4)
-        }
-    }
-
-    private var recordControls: some View {
+    private func recordControls(viewModel: RecorderViewModel) -> some View {
         VStack(spacing: 20) {
             // 录音时长显示
             if isRecording {
@@ -274,7 +161,7 @@ struct ProjectRecorderView: View {
 
             // 录音按钮
             Button {
-                toggleRecording()
+                toggleRecording(viewModel: viewModel)
             } label: {
                 ZStack {
                     Circle()
@@ -296,7 +183,7 @@ struct ProjectRecorderView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    private func toggleRecording() {
+    private func toggleRecording(viewModel: RecorderViewModel) {
         Task {
             if isRecording {
                 await viewModel.stopRecording()
@@ -304,20 +191,6 @@ struct ProjectRecorderView: View {
                 await viewModel.startRecording()
             }
         }
-    }
-
-    private func format(duration: Double) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.minute, .second]
-        formatter.zeroFormattingBehavior = .pad
-        return formatter.string(from: duration) ?? "00:00"
-    }
-
-    private func format(date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
     }
 }
 

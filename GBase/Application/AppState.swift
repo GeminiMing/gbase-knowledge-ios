@@ -19,6 +19,7 @@ public final class AppState: ObservableObject {
     @Published public private(set) var authContext: AuthContext?
     @Published public var selectedTab: MainTab = .projects
     @Published public var selectedProject: Project?
+    @Published public var recorderViewModel: RecorderViewModel?
 
     private var cancellables = Set<AnyCancellable>()
 

@@ -3,8 +3,8 @@ import SwiftUI
 struct MainTabView: View {
     @Environment(\.diContainer) private var container
     @EnvironmentObject private var appState: AppState
-    @StateObject private var recorderViewModel = RecorderViewModel()
     @State private var showingQuickRecorder = false
+    @State private var recordingMeeting: Meeting?
 
     var body: some View {
         ZStack {
@@ -20,12 +20,26 @@ struct MainTabView: View {
                         Label(LocalizedStringKey.tabDrafts.localized, systemImage: "tray")
                     }
                     .tag(AppState.MainTab.drafts)
+                    .onAppear {
+                        // 切换到草稿页时清除选中的项目
+                        if appState.selectedTab == .drafts {
+                            print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
+                            appState.selectedProject = nil
+                        }
+                    }
 
                 ProfileView()
                     .tabItem {
                         Label(LocalizedStringKey.tabProfile.localized, systemImage: "person.circle")
                     }
                     .tag(AppState.MainTab.profile)
+                    .onAppear {
+                        // 切换到个人页时清除选中的项目
+                        if appState.selectedTab == .profile {
+                            print("👤 [MainTabView] Switched to profile tab, clearing selectedProject")
+                            appState.selectedProject = nil
+                        }
+                    }
             }
             .navigationTitle(appState.authContext?.user.name ?? "")
 
@@ -40,22 +54,59 @@ struct MainTabView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingQuickRecorder) {
-            QuickRecorderView(viewModel: recorderViewModel)
-        }
-        .onAppear {
-            recorderViewModel.configure(container: container, shouldLoadProjects: false)
+        .sheet(isPresented: $showingQuickRecorder, onDismiss: {
+            // 录音完成后发送通知,让ProjectDetailView刷新
+            print("🔄 [MainTabView] Recording sheet dismissed, posting refresh notification")
+            NotificationCenter.default.post(name: NSNotification.Name("RefreshRecordings"), object: nil)
+        }) {
+            if let viewModel = appState.recorderViewModel {
+                QuickRecorderView(viewModel: viewModel, meeting: recordingMeeting)
+            }
         }
     }
 
     private var quickRecordButton: some View {
         Button(action: {
-            recorderViewModel.prepareForQuickRecording()
-            showingQuickRecorder = true
-            // Start recording immediately after showing the sheet
             Task {
+                guard let viewModel = appState.recorderViewModel else { return }
+
+                print("🔴 [MainTabView] Quick record button clicked")
+                print("🔴 [MainTabView] appState.selectedProject: \(String(describing: appState.selectedProject))")
+                print("🔴 [MainTabView] Current tab: \(appState.selectedTab)")
+
+                // 如果有选中的项目,为该项目创建会议并绑定
+                if let project = appState.selectedProject {
+                    print("✅ [MainTabView] Project found: \(project.title)")
+                    do {
+                        let meeting = try await container.createMeetingUseCase.execute(
+                            projectId: project.id,
+                            title: project.title.isEmpty ? "快速录音" : project.title,
+                            meetingTime: Date(),
+                            location: nil,
+                            description: nil
+                        )
+                        recordingMeeting = meeting
+                        viewModel.prepare(for: project, meeting: meeting)
+                    } catch {
+                        print("❌ 创建会议失败: \(error)")
+                        // 如果创建会议失败,仍然允许录音,但作为草稿
+                        recordingMeeting = nil
+                        viewModel.prepareForQuickRecording()
+                    }
+                } else {
+                    // 没有选中项目,作为草稿录音
+                    print("⚠️ [MainTabView] No project selected, using draft mode")
+                    recordingMeeting = nil
+                    viewModel.prepareForQuickRecording()
+                }
+
+                await MainActor.run {
+                    showingQuickRecorder = true
+                }
+
+                // Start recording immediately after showing the sheet
                 try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds delay for sheet animation
-                await recorderViewModel.startRecording()
+                await viewModel.startRecording()
             }
         }) {
             ZStack {
@@ -95,6 +146,7 @@ struct MainTabView: View {
 struct QuickRecorderView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: RecorderViewModel
+    let meeting: Meeting?
 
     var body: some View {
         NavigationStack {
@@ -159,7 +211,7 @@ struct QuickRecorderView: View {
                 .padding(.bottom, 40)
             }
             .padding()
-            .navigationTitle(LocalizedStringKey.quickRecorderTitle.localized)
+            .navigationTitle(meeting != nil ? (viewModel.selectedProjectTitle ?? LocalizedStringKey.quickRecorderTitle.localized) : LocalizedStringKey.quickRecorderTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

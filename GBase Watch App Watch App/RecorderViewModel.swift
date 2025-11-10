@@ -9,6 +9,8 @@ class RecorderViewModel: NSObject, ObservableObject {
     @Published var duration: TimeInterval = 0
     @Published var permissionGranted = false
     @Published var sessionActivated = false
+    @Published var showSaveConfirmation = false
+    @Published var saveConfirmationMessage = ""
 
     private var audioRecorder: AVAudioRecorder?
     private var timer: Timer?
@@ -157,6 +159,18 @@ class RecorderViewModel: NSObject, ObservableObject {
             // Transfer file (works even when not reachable)
             session.transferFile(fileURL, metadata: metadata)
             print("✅ File transfer initiated successfully")
+
+            // Show save confirmation
+            saveConfirmationMessage = NSLocalizedString("watch_recording.saved_to_iphone", comment: "")
+            showSaveConfirmation = true
+
+            // Auto-hide after 2 seconds
+            Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                await MainActor.run {
+                    showSaveConfirmation = false
+                }
+            }
 
             // Also try to send message if reachable
             if session.isReachable {

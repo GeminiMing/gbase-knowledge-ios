@@ -7,17 +7,14 @@ struct DraftDetailView: View {
     @StateObject private var viewModel: DraftDetailViewModel
 
     let recording: Recording
-    let onDismiss: () -> Void
 
-    init(recording: Recording, onDismiss: @escaping () -> Void) {
+    init(recording: Recording) {
         self.recording = recording
-        self.onDismiss = onDismiss
         _viewModel = StateObject(wrappedValue: DraftDetailViewModel(recording: recording))
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
+        Form {
                 Section(header: Text(LocalizedStringKey.draftDetailRecordingInfo.localized)) {
                     HStack {
                         Text(LocalizedStringKey.draftDetailFileName.localized)
@@ -73,7 +70,6 @@ struct DraftDetailView: View {
                         Task {
                             await viewModel.bindToProject()
                             if viewModel.bindingSuccess {
-                                onDismiss()
                                 dismiss()
                             }
                         }
@@ -110,16 +106,18 @@ struct DraftDetailView: View {
             }
             .navigationTitle(LocalizedStringKey.draftDetailTitle.localized)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(LocalizedStringKey.commonCancel.localized) {
-                        dismiss()
-                    }
+            .overlay {
+                if viewModel.projects.isEmpty && viewModel.errorMessage == nil {
+                    ProgressView("加载中...")
+                        .progressViewStyle(.circular)
                 }
             }
-            .task {
+            .onAppear {
+                print("📄 [DraftDetailView] onAppear triggered for recording: \(recording.id)")
                 viewModel.configure(container: container)
-                await viewModel.loadProjects()
+                Task {
+                    await viewModel.loadProjects()
+                }
             }
             .alert(isPresented: Binding<Bool>(
                 get: { viewModel.errorMessage != nil },
@@ -129,7 +127,6 @@ struct DraftDetailView: View {
                       message: Text(viewModel.errorMessage ?? ""),
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
             }
-        }
     }
 
     private func formatDuration(_ seconds: Double) -> String {
@@ -185,16 +182,22 @@ final class DraftDetailViewModel: ObservableObject {
     }
 
     func loadProjects() async {
+        print("📄 [DraftDetailViewModel] loadProjects called")
         guard let container else {
+            print("❌ [DraftDetailViewModel] Container is nil")
             errorMessage = LocalizedStringKey.profileDependencyNotInjected.localized
             return
         }
 
         do {
+            print("📄 [DraftDetailViewModel] Fetching editable projects...")
             let map = try await container.fetchEditableProjectsUseCase.execute()
+            print("📄 [DraftDetailViewModel] Received \(map.count) projects")
             projects = map.map { ProjectOption(id: $0.key, title: $0.value) }
                           .sorted { $0.title < $1.title }
+            print("📄 [DraftDetailViewModel] Projects loaded successfully")
         } catch {
+            print("❌ [DraftDetailViewModel] Error loading projects: \(error)")
             errorMessage = error.localizedDescription
         }
     }
