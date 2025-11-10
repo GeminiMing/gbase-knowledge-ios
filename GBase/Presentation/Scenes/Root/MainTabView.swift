@@ -6,7 +6,6 @@ struct MainTabView: View {
     @EnvironmentObject private var appState: AppState
     @State private var showingQuickRecorder = false
     @State private var recordingMeeting: Meeting?
-    @State private var showingWebView = false
 
     var body: some View {
         TabView(selection: $appState.selectedTab) {
@@ -15,6 +14,19 @@ struct MainTabView: View {
                     Label(LocalizedStringKey.tabProjects.localized, systemImage: "folder")
                 }
                 .tag(AppState.MainTab.projects)
+
+            DraftsView()
+                .tabItem {
+                    Label(LocalizedStringKey.tabDrafts.localized, systemImage: "tray")
+                }
+                .tag(AppState.MainTab.drafts)
+                .onAppear {
+                    // 切换到草稿页时清除选中的项目
+                    if appState.selectedTab == .drafts {
+                        print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
+                        appState.selectedProject = nil
+                    }
+                }
 
             // Center recorder button in tab bar
             Color.clear
@@ -33,19 +45,6 @@ struct MainTabView: View {
                 }
                 .tag(AppState.MainTab.recorder)
 
-            DraftsView()
-                .tabItem {
-                    Label(LocalizedStringKey.tabDrafts.localized, systemImage: "tray")
-                }
-                .tag(AppState.MainTab.drafts)
-                .onAppear {
-                    // 切换到草稿页时清除选中的项目
-                    if appState.selectedTab == .drafts {
-                        print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
-                        appState.selectedProject = nil
-                    }
-                }
-
             ProfileView()
                 .tabItem {
                     Label(LocalizedStringKey.tabProfile.localized, systemImage: "person.circle")
@@ -59,12 +58,16 @@ struct MainTabView: View {
                     }
                 }
 
-            // Web view for hub.gbase.ai
-            Color.clear
-                .tabItem {
-                    Label("Hub", systemImage: "globe")
-                }
-                .tag(AppState.MainTab.hub)
+            // Web view for hub.gbase.ai as a full page
+            NavigationStack {
+                WebView(url: URL(string: "https://hub.gbase.ai")!)
+                    .navigationTitle("Hub")
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .tabItem {
+                Label("Hub", systemImage: "globe")
+            }
+            .tag(AppState.MainTab.hub)
         }
         .navigationTitle(appState.authContext?.user.name ?? "")
         .onChange(of: appState.selectedTab) { newTab in
@@ -74,14 +77,6 @@ struct MainTabView: View {
                 // Reset to previous valid tab
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     if appState.selectedTab == .recorder {
-                        appState.selectedTab = .projects
-                    }
-                }
-            } else if newTab == .hub {
-                showingWebView = true
-                // Reset to previous valid tab
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    if appState.selectedTab == .hub {
                         appState.selectedTab = .projects
                     }
                 }
@@ -95,9 +90,6 @@ struct MainTabView: View {
             if let viewModel = appState.recorderViewModel {
                 QuickRecorderView(viewModel: viewModel, meeting: recordingMeeting)
             }
-        }
-        .sheet(isPresented: $showingWebView) {
-            WebView(url: URL(string: "https://hub.gbase.ai")!)
         }
     }
 
@@ -138,10 +130,6 @@ struct MainTabView: View {
             await MainActor.run {
                 showingQuickRecorder = true
             }
-
-            // Start recording immediately after showing the sheet
-            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds delay for sheet animation
-            await viewModel.startRecording()
         }
     }
 }
@@ -220,9 +208,11 @@ struct QuickRecorderView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(LocalizedStringKey.commonCancel.localized) {
+                        // 如果正在录音,停止但不保存
                         if case .recording = viewModel.status {
                             Task {
-                                await viewModel.stopRecording()
+                                // 直接停止录音服务,不触发保存逻辑
+                                viewModel.cancelRecording()
                             }
                         }
                         dismiss()

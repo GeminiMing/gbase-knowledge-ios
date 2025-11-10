@@ -200,6 +200,29 @@ public final class RecorderViewModel: NSObject, ObservableObject {
         resetWaveform()
     }
 
+    func cancelRecording() {
+        guard let container, let fileURL = recordingURL else {
+            status = .idle
+            return
+        }
+
+        print("🎤 [RecorderViewModel] cancelRecording called")
+
+        // Stop recording service
+        container.audioRecorderService.stopRecording()
+
+        // Delete the recording file
+        try? container.fileStorageService.removeFile(at: fileURL)
+
+        // Reset state
+        recordingURL = nil
+        recordingStartAt = nil
+        resetWaveform()
+        status = .idle
+
+        print("🎤 [RecorderViewModel] Recording cancelled and file deleted")
+    }
+
     func retryUpload(recording: Recording) async {
         do {
             try await upload(recording: recording)
