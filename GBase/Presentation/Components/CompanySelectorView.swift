@@ -150,8 +150,8 @@ struct CompanyRow: View {
 // MARK: - Preview
 
 #Preview {
-    let companyAPIService = CompanyAPIService()
     let tokenStore = KeychainTokenStore()
+    let companyAPIService = CompanyAPIService(tokenStore: tokenStore)
     let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
     CompanySelectorView(companyManager: companyManager)
 }

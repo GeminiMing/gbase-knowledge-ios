@@ -8,6 +8,8 @@ final class ProjectDetailViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var playingRecordingId: String?
+    @Published var uploadingRecordingId: String?
+    @Published var uploadProgress: Double = 0
 
     private var container: DIContainer?
     private let projectId: String
@@ -37,6 +39,83 @@ final class ProjectDetailViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func bindAndUploadRecording(_ recording: Recording) async {
+        guard let container else { return }
+
+        uploadingRecordingId = recording.id
+        uploadProgress = 0
+        defer {
+            uploadingRecordingId = nil
+            uploadProgress = 0
+        }
+
+        do {
+            // Create a meeting for this recording
+            let meetingTitle = recording.displayName
+            let meeting = try await container.createMeetingUseCase.execute(
+                projectId: projectId,
+                title: meetingTitle,
+                meetingTime: recording.createdAt,
+                location: nil,
+                description: nil
+            )
+
+            // Bind the draft to the project and meeting
+            try container.bindDraftToProjectUseCase.execute(
+                recordingId: recording.id,
+                projectId: projectId,
+                meetingId: meeting.id,
+                customName: recording.customName
+            )
+
+            // Fetch the updated recording
+            let recordings = try container.recordingLocalStore.fetch(projectId: nil, status: nil)
+            guard let updatedRecording = recordings.first(where: { $0.id == recording.id }) else {
+                errorMessage = LocalizedStringKey.draftDetailRecordingNotFound.localized
+                return
+            }
+
+            // Upload the recording
+            try await uploadRecording(updatedRecording)
+
+            // Reload recordings to show updated status
+            await loadRecordings()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func uploadRecording(_ recording: Recording) async throws {
+        guard let container else { throw APIError.networkUnavailable }
+        guard let meetingId = recording.meetingId else { return }
+
+        let fileURL = URL(fileURLWithPath: recording.localFilePath)
+        let actualStart = recording.actualStartAt ?? Date()
+        let actualEnd = recording.actualEndAt ?? Date()
+
+        _ = try await container.recordingUploadService.uploadRecording(
+            meetingId: meetingId,
+            fileURL: fileURL,
+            actualStartAt: actualStart,
+            actualEndAt: actualEnd,
+            fileType: "COMPLETE_RECORDING_FILE",
+            fromType: "GBASE",
+            customName: recording.customName,
+            progressHandler: { [weak self] progress in
+                Task { @MainActor in
+                    self?.uploadProgress = progress
+                    try? container.recordingLocalStore.update(
+                        id: recording.id,
+                        status: progress >= 100 ? .completed : .uploading,
+                        progress: progress
+                    )
+                }
+            }
+        )
+
+        try container.recordingLocalStore.update(id: recording.id, status: .completed, progress: 100)
     }
 
     func deleteRecording(_ recording: Recording) async {

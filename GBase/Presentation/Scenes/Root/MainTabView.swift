@@ -6,6 +6,7 @@ struct MainTabView: View {
     @EnvironmentObject private var appState: AppState
     @State private var showingQuickRecorder = false
     @State private var recordingMeeting: Meeting?
+    @State private var previousTab: AppState.MainTab = .projects
 
     var body: some View {
         TabView(selection: $appState.selectedTab) {
@@ -73,15 +74,26 @@ struct MainTabView: View {
                 // Reset to previous valid tab
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     if appState.selectedTab == .recorder {
-                        appState.selectedTab = .projects
+                        appState.selectedTab = previousTab
                     }
                 }
+            } else if newTab != .recorder {
+                // Save the current tab as previous tab (only if not recorder)
+                previousTab = newTab
             }
         }
         .sheet(isPresented: $showingQuickRecorder, onDismiss: {
             // 录音完成后发送通知,让ProjectDetailView刷新
             print("🔄 [MainTabView] Recording sheet dismissed, posting refresh notification")
             NotificationCenter.default.post(name: NSNotification.Name("RefreshRecordings"), object: nil)
+
+            // 确保重置录音状态,以便下次能正常开始
+            if let viewModel = appState.recorderViewModel {
+                print("🔄 [MainTabView] Resetting recorder status to idle")
+                Task { @MainActor in
+                    viewModel.status = .idle
+                }
+            }
         }) {
             if let viewModel = appState.recorderViewModel {
                 QuickRecorderView(viewModel: viewModel, meeting: recordingMeeting)
@@ -223,6 +235,15 @@ struct QuickRecorderView: View {
                       message: Text(viewModel.errorMessage ?? ""),
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
             }
+            .onAppear {
+                // 自动开始录音
+                Task {
+                    if case .idle = viewModel.status {
+                        print("🎤 [QuickRecorderView] Auto-starting recording on appear")
+                        await viewModel.startRecording()
+                    }
+                }
+            }
         }
     }
 
@@ -262,15 +283,19 @@ struct HubView: View {
     }
 
     private func loadHubURL() async {
+        // Get Hub base URL from environment configuration
+        let hubBaseURL = container.apiConfiguration.environment.hubBaseURL
+
         // Try to load saved credentials
         guard let credentials = try? await container.credentialsStore.loadCredentials() else {
             // No credentials, just load Hub without auto-login
-            hubURL = URL(string: "https://hub.gbase.ai")
+            hubURL = hubBaseURL
+            print("🌐 [HubView] Loading Hub without auto-login: \(hubBaseURL.absoluteString)")
             return
         }
 
         // Build URL with auto-login parameters
-        var components = URLComponents(string: "https://hub.gbase.ai/auth/login")!
+        var components = URLComponents(url: hubBaseURL.appendingPathComponent("auth/login"), resolvingAgainstBaseURL: false)!
         components.queryItems = [
             URLQueryItem(name: "auto_login", value: "1"),
             URLQueryItem(name: "auto_email", value: credentials.email),
@@ -278,8 +303,9 @@ struct HubView: View {
             URLQueryItem(name: "auto_remember", value: "1")
         ]
 
-        hubURL = components.url ?? URL(string: "https://hub.gbase.ai")
+        hubURL = components.url ?? hubBaseURL
         print("🌐 [HubView] Loading Hub with auto-login for: \(credentials.email)")
+        print("🌐 [HubView] Hub URL: \(hubURL?.absoluteString ?? "nil")")
     }
 }
 
@@ -287,14 +313,34 @@ struct HubView: View {
 struct WebView: UIViewRepresentable {
     let url: URL
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
         webView.load(URLRequest(url: url))
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
         // No update needed
+    }
+
+    class Coordinator: NSObject, WKNavigationDelegate {
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if let url = navigationAction.request.url {
+                print("🌐 [WebView] Navigating to: \(url.absoluteString)")
+            }
+            decisionHandler(.allow)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            if let url = webView.url {
+                print("🌐 [WebView] Finished loading: \(url.absoluteString)")
+            }
+        }
     }
 }
 

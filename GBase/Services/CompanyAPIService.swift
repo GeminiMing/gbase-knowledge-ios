@@ -5,10 +5,12 @@ public class CompanyAPIService {
 
     private let baseURL: String
     private let session: URLSession
+    private let tokenStore: TokenStore
 
-    public init(baseURL: String = "YOUR_API_BASE_URL", session: URLSession = .shared) {
+    public init(baseURL: String = "YOUR_API_BASE_URL", session: URLSession = .shared, tokenStore: TokenStore) {
         self.baseURL = baseURL
         self.session = session
+        self.tokenStore = tokenStore
         print("🔧 CompanyAPIService 初始化，baseURL: \(baseURL)")
     }
 
@@ -20,7 +22,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/my/company/default")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.addAuthHeaders()
+        try await request.addAuthHeaders(tokenStore: tokenStore)
 
         print("🌐 API 请求: GET \(url.absoluteString)")
 
@@ -47,7 +49,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/my/companies")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.addAuthHeaders()
+        try await request.addAuthHeaders(tokenStore: tokenStore)
 
         print("🌐 API 请求: GET \(url.absoluteString)")
 
@@ -74,7 +76,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/my/company/default")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.addAuthHeaders()
+        try await request.addAuthHeaders(tokenStore: tokenStore)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let body = ["companyId": companyId]
@@ -127,7 +129,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/company/\(companyId)/my/authority/")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.addAuthHeaders()
+        try await request.addAuthHeaders(tokenStore: tokenStore)
 
         let (data, response) = try await session.data(for: request)
         try validateResponse(response)
@@ -156,13 +158,14 @@ public class CompanyAPIService {
 
 extension URLRequest {
     /// 添加认证请求头
-    mutating func addAuthHeaders() {
-        // 从 UserDefaults 或 Keychain 获取 token
-        if let accessToken = UserDefaults.standard.string(forKey: "accessToken") {
-            setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            print("🔑 已添加 Authorization 请求头 (Token 长度: \(accessToken.count))")
+    mutating func addAuthHeaders(tokenStore: TokenStore) async throws {
+        // 从 TokenStore (Keychain) 获取 token
+        if let session = try? await tokenStore.currentSession() {
+            setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
+            print("🔑 已添加 Authorization 请求头 (Token 长度: \(session.accessToken.count))")
         } else {
-            print("⚠️ 警告: 未找到 accessToken")
+            print("⚠️ 警告: 未找到 session token")
+            throw CompanyAPIError.invalidResponse
         }
     }
 }

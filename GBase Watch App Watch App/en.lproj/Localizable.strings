@@ -1,0 +1,11 @@
+/* Watch App Localizations */
+
+/* Idle View */
+"watch.tap_to_record" = "Tap to Record";
+
+/* Recording View */
+"watch.tap_to_stop" = "Tap to Stop";
+"watch.rec_indicator" = "REC";
+
+/* Recording saved confirmation */
+"watch_recording.saved_to_iphone" = "Saved to iPhone";

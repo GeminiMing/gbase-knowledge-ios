@@ -3,6 +3,7 @@ import SwiftUI
 
 public struct DIContainer {
     public let appState: AppState
+    public let apiConfiguration: APIConfiguration
 
     public let loginUseCase: LoginUseCase
     public let refreshTokenUseCase: RefreshTokenUseCase
@@ -34,6 +35,7 @@ public struct DIContainer {
     public let companyManager: CompanyManager
 
     public init(appState: AppState,
+                apiConfiguration: APIConfiguration,
                 loginUseCase: LoginUseCase,
                 refreshTokenUseCase: RefreshTokenUseCase,
                 fetchCurrentUserUseCase: FetchCurrentUserUseCase,
@@ -60,6 +62,7 @@ public struct DIContainer {
                 networkMonitor: NetworkMonitor,
                 companyManager: CompanyManager) {
         self.appState = appState
+        self.apiConfiguration = apiConfiguration
         self.loginUseCase = loginUseCase
         self.refreshTokenUseCase = refreshTokenUseCase
         self.fetchCurrentUserUseCase = fetchCurrentUserUseCase
@@ -87,7 +90,7 @@ public struct DIContainer {
         self.companyManager = companyManager
     }
 
-    public static func bootstrap(environment: APIConfiguration.Environment = .development) -> DIContainer {
+    public static func bootstrap(environment: APIConfiguration.Environment = .production) -> DIContainer {
         let appState = AppState()
         let tokenStore = KeychainTokenStore()
         let config = APIConfiguration(environment: environment)
@@ -151,7 +154,7 @@ public struct DIContainer {
                                                             fileStorageService: fileStorageService)
 
         // Create CompanyManager on main actor
-        let companyAPIService = CompanyAPIService(baseURL: config.environment.authBaseURL.absoluteString)
+        let companyAPIService = CompanyAPIService(baseURL: config.environment.authBaseURL.absoluteString, tokenStore: tokenStore)
         let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
 
         // Create UserCredentialsStore
@@ -164,6 +167,7 @@ public struct DIContainer {
         )
 
         return DIContainer(appState: appState,
+                           apiConfiguration: config,
                            loginUseCase: loginUseCase,
                            refreshTokenUseCase: refreshUseCase,
                            fetchCurrentUserUseCase: fetchCurrentUserUseCase,
@@ -197,7 +201,8 @@ public struct DIContainer {
         let tokenStore = InMemoryTokenStore()
         let credentialsStore = UserCredentialsStore()
         let mockUseCase = MockAuthUseCase()
-        let companyAPIService = CompanyAPIService()
+        let config = APIConfiguration(environment: .development)
+        let companyAPIService = CompanyAPIService(tokenStore: tokenStore)
         let companyManager = CompanyManager(apiService: companyAPIService, tokenStore: tokenStore)
         let fileStorageService = FileStorageService()
         let recordingLocalStore = MockRecordingLocalStore()
@@ -207,6 +212,7 @@ public struct DIContainer {
         )
 
         return DIContainer(appState: appState,
+                           apiConfiguration: config,
                            loginUseCase: mockUseCase,
                            refreshTokenUseCase: mockUseCase,
                            fetchCurrentUserUseCase: mockUseCase,
@@ -349,7 +355,7 @@ private final class MockMeetingsUseCase: CreateMeetingUseCase, FetchMyMeetingsUs
 
 private final class MockRecordingUseCase: ApplyRecordingUploadUseCase, FinishRecordingUploadUseCase {
     func execute(meetingId: String, fileName: String, extension: String, contentHash: String, length: Int64, fileType: String, fromType: String, actualStartAt: Date, actualEndAt: Date) async throws -> UploadApplication {
-        UploadApplication(id: 0, uploadUri: URL(string: "https://example.com")!, uuid: UUID().uuidString, contentType: "audio/wav")
+        UploadApplication(id: 0, uploadUri: URL(string: "https://example.com")!, uuid: UUID().uuidString, contentType: "audio/mp4")
     }
 
     func execute(uploadId: Int, contentHash: String) async throws {}
@@ -358,7 +364,7 @@ private final class MockRecordingUseCase: ApplyRecordingUploadUseCase, FinishRec
 private final class MockRecordingUploadService: RecordingUploadServiceType {
     func uploadRecording(meetingId: String, fileURL: URL, actualStartAt: Date, actualEndAt: Date, fileType: String, fromType: String, customName: String?, progressHandler: @escaping (Double) -> Void) async throws -> UploadApplication {
         progressHandler(100)
-        return UploadApplication(id: 0, uploadUri: URL(string: "https://example.com")!, uuid: UUID().uuidString, contentType: "audio/wav")
+        return UploadApplication(id: 0, uploadUri: URL(string: "https://example.com")!, uuid: UUID().uuidString, contentType: "audio/mp4")
     }
 }
 

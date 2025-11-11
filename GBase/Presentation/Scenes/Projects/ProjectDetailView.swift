@@ -122,16 +122,33 @@ struct ProjectDetailView: View {
             // 如果录音还未上传,显示上传按钮
             if recording.uploadStatus == .pending || recording.uploadStatus == .failed {
                 HStack {
-                    NavigationLink(destination: DraftDetailView(recording: recording)) {
-                        Label(LocalizedStringKey.draftDetailBindAndUpload.localized, systemImage: "link")
-                            .font(.subheadline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(Color.blue)
-                            .cornerRadius(8)
+                    Button(action: {
+                        Task {
+                            await viewModel.bindAndUploadRecording(recording)
+                        }
+                    }) {
+                        VStack(spacing: 4) {
+                            if viewModel.uploadingRecordingId == recording.id {
+                                HStack {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .scaleEffect(0.8)
+                                    Text("上传中 \(Int(viewModel.uploadProgress))%")
+                                        .font(.subheadline)
+                                        .foregroundColor(.white)
+                                }
+                            } else {
+                                Label(LocalizedStringKey.draftDetailBindAndUpload.localized, systemImage: "link")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(viewModel.uploadingRecordingId == recording.id ? Color.orange : Color.blue)
+                        .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
+                    .disabled(viewModel.uploadingRecordingId == recording.id)
 
                     Button(action: {
                         Task {

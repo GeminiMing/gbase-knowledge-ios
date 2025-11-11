@@ -20,13 +20,10 @@ public final class AudioRecorderService: NSObject {
     private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
     private var checkCount = 0
     private let settings: [String: Any] = [
-        AVFormatIDKey: Int(kAudioFormatLinearPCM),
+        AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
         AVSampleRateKey: 44_100,
         AVNumberOfChannelsKey: 2,
-        AVLinearPCMBitDepthKey: 16,
-        AVLinearPCMIsBigEndianKey: false,
-        AVLinearPCMIsFloatKey: false,
-        AVLinearPCMIsNonInterleaved: false
+        AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
     ]
 
     public override init() {
@@ -236,34 +233,71 @@ public final class AudioRecorderService: NSObject {
               let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
             return
         }
-        
+
         switch type {
         case .began:
             // 中断开始 - 录音会自动暂停
-            print("⚠️ 音频会话中断开始")
-            
+            print("⚠️ 音频会话中断开始（可能是其他应用占用了音频）")
+            // 不立即停止录音，等待中断结束
+
         case .ended:
-            // 中断结束 - 恢复录音
-            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
-                return
+            // 中断结束 - 尝试恢复录音
+            print("✅ 音频会话中断结束，尝试恢复录音")
+
+            // 检查是否应该恢复
+            let shouldResume: Bool
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                shouldResume = options.contains(.shouldResume)
+            } else {
+                // 如果没有选项信息，默认尝试恢复
+                shouldResume = true
             }
-            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
-            
-            if options.contains(.shouldResume) {
-                print("✅ 音频会话中断结束，恢复录音")
-                do {
-                    try AVAudioSession.sharedInstance().setActive(true)
-                    if let recorder = recorder, !recorder.isRecording {
-                        try recorder.record()
-                    }
-                } catch {
-                    print("❌ 恢复录音失败: \(error)")
-                    delegate?.recorderDidFail(error)
+
+            if shouldResume, let recorder = recorder {
+                // 使用重试机制恢复录音
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    self?.attemptResumeRecording(retryCount: 3)
                 }
             }
-            
+
         @unknown default:
             break
+        }
+    }
+
+    private func attemptResumeRecording(retryCount: Int) {
+        guard retryCount > 0, let recorder = recorder else { return }
+
+        do {
+            // 重新配置并激活音频会话
+            try configureSession()
+
+            // 检查录音器状态并恢复
+            if !recorder.isRecording {
+                let resumed = recorder.record()
+                if resumed {
+                    print("✅ 录音恢复成功（剩余重试次数: \(retryCount)）")
+                } else {
+                    print("⚠️ 录音恢复失败，\(retryCount - 1) 次后重试")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                        self?.attemptResumeRecording(retryCount: retryCount - 1)
+                    }
+                }
+            } else {
+                print("✅ 录音器已在运行中")
+            }
+        } catch {
+            print("❌ 恢复录音配置失败: \(error)")
+            if retryCount > 1 {
+                print("⚠️ \(retryCount - 1) 秒后重试")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                    self?.attemptResumeRecording(retryCount: retryCount - 1)
+                }
+            } else {
+                print("❌ 录音恢复失败，已用尽所有重试")
+                // 不通知失败，因为录音可能仍在后台继续
+            }
         }
     }
     

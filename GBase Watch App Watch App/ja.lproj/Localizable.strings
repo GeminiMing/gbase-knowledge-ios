@@ -1,0 +1,11 @@
+/* Watch App Localizations */
+
+/* Idle View */
+"watch.tap_to_record" = "タップして録音";
+
+/* Recording View */
+"watch.tap_to_stop" = "タップして停止";
+"watch.rec_indicator" = "録音中";
+
+/* Recording saved confirmation */
+"watch_recording.saved_to_iphone" = "iPhoneに保存されました";

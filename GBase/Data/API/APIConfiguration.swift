@@ -22,6 +22,15 @@ public struct APIConfiguration: Sendable {
                 return URL(string: "https://ogs-api.gbase.ai")!
             }
         }
+
+        public var hubBaseURL: URL {
+            switch self {
+            case .development:
+                return URL(string: "https://hub-dev.gbase.ai")!
+            case .production:
+                return URL(string: "https://hub.gbase.ai")!
+            }
+        }
     }
 
     public let environment: Environment

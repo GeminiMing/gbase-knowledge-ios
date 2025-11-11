@@ -35,6 +35,22 @@ struct CreateMeetingResponseDTO: Decodable {
     let fieldErrors: [APIFieldErrorDTO]?
     let data: CreateMeetingDataDTO?
     let error: APIResponseErrorDTO?
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Default success to false if not present
+        success = (try? container.decode(Bool.self, forKey: .success)) ?? false
+        fieldErrors = try? container.decode([APIFieldErrorDTO].self, forKey: .fieldErrors)
+        data = try? container.decode(CreateMeetingDataDTO.self, forKey: .data)
+        error = try? container.decode(APIResponseErrorDTO.self, forKey: .error)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case fieldErrors
+        case data
+        case error
+    }
 }
 
 struct CreateMeetingDataDTO: Decodable {
@@ -118,9 +134,38 @@ struct ProjectItemSetResponseDTO: Decodable {
     let success: Bool
     let fieldErrors: [APIFieldErrorDTO]?
     let data: ProjectItemSetDataDTO?
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Default success to false if not present
+        success = (try? container.decode(Bool.self, forKey: .success)) ?? false
+        fieldErrors = try? container.decode([APIFieldErrorDTO].self, forKey: .fieldErrors)
+        data = try? container.decode(ProjectItemSetDataDTO.self, forKey: .data)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case success
+        case fieldErrors
+        case data
+    }
 }
 
 struct ProjectItemSetDataDTO: Decodable {
     let id: String?
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let stringId = try? container.decode(String.self, forKey: .id) {
+            id = stringId
+        } else if let intId = try? container.decode(Int.self, forKey: .id) {
+            id = String(intId)
+        } else {
+            id = nil
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+    }
 }
 

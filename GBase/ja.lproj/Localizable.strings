@@ -1,102 +1,102 @@
 /* Common */
 "common.ok" = "OK";
-"common.cancel" = "Cancel";
-"common.error" = "Error";
-"common.success" = "Success";
-"common.loading" = "Loading...";
-"common.back" = "Back";
+"common.cancel" = "キャンセル";
+"common.error" = "エラー";
+"common.success" = "成功";
+"common.loading" = "読み込み中...";
+"common.back" = "戻る";
 
 /* Login */
-"login.title" = "Sign In";
-"login.email" = "Email";
-"login.password" = "Password";
-"login.button" = "Sign In";
-"login.welcome_back" = "Welcome back";
+"login.title" = "ログイン";
+"login.email" = "メールアドレス";
+"login.password" = "パスワード";
+"login.button" = "ログイン";
+"login.welcome_back" = "お帰りなさい";
 "login.email_placeholder" = "your@email.com";
 "login.password_placeholder" = "Enter password";
-"login.remember_password" = "Remember Password";
-"login.empty_fields" = "Please enter email and password";
+"login.remember_password" = "パスワードを記憶する";
+"login.empty_fields" = "メールアドレスとパスワードを入力してください";
 
 /* Profile */
-"profile.title" = "My";
-"profile.basic_info" = "Basic Information";
-"profile.name" = "Name";
-"profile.email" = "Email";
-"profile.default_company" = "Default Company";
-"profile.company_id" = "Company ID";
-"profile.company_username" = "Company Username";
-"profile.language" = "Language";
-"profile.not_logged_in" = "Not Logged In";
-"profile.clear_cache" = "Clear Local Cache";
-"profile.logout" = "Logout";
-"profile.alert_title" = "Notice";
-"profile.cache_cleared" = "Local cache cleared";
-"profile.dependency_not_injected" = "Dependency not injected";
+"profile.title" = "マイページ";
+"profile.basic_info" = "基本情報";
+"profile.name" = "名前";
+"profile.email" = "メールアドレス";
+"profile.default_company" = "デフォルト会社";
+"profile.company_id" = "会社ID";
+"profile.company_username" = "企業ユーザー名";
+"profile.language" = "言語";
+"profile.not_logged_in" = "未ログイン";
+"profile.clear_cache" = "ローカルキャッシュをクリア";
+"profile.logout" = "ログアウト";
+"profile.alert_title" = "通知";
+"profile.cache_cleared" = "ローカルキャッシュをクリアしました";
+"profile.dependency_not_injected" = "依存関係が注入されていません";
 
 /* Projects */
-"projects.title" = "Projects";
-"projects.items" = "Items";
-"projects.temporary_meeting" = "Temporary Meeting";
-"projects.search_placeholder" = "Search projects...";
-"projects.empty_title" = "No Projects";
-"projects.search_empty_title" = "No matching projects found";
-"projects.search_empty_message" = "Try searching with different keywords";
-"project_role.owner" = "Owner";
-"project_role.contributor" = "Contributor";
-"project_role.sharee" = "Sharee";
+"projects.title" = "プロジェクト一覧";
+"projects.items" = "項目";
+"projects.temporary_meeting" = "一時会議";
+"projects.search_placeholder" = "プロジェクトを検索...";
+"projects.empty_title" = "プロジェクトがありません";
+"projects.search_empty_title" = "一致するプロジェクトが見つかりません";
+"projects.search_empty_message" = "別のキーワードで検索してみてください";
+"project_role.owner" = "所有者";
+"project_role.contributor" = "貢献者";
+"project_role.sharee" = "共有者";
 
 /* Recorder */
-"recorder.back" = "Back";
-"recorder.meeting_id" = "Meeting ID: ";
-"recorder.no_recordings" = "No Recordings";
-"recorder.start_recording_hint" = "Tap the button below to start recording";
-"recorder.preparing" = "Ready to Record";
-"recorder.retry_upload" = "Retry Upload";
-"recorder.delete" = "Delete";
-"recorder.upload_failed" = "Upload Failed";
+"recorder.back" = "戻る";
+"recorder.meeting_id" = "会議ID：";
+"recorder.no_recordings" = "録音がありません";
+"recorder.start_recording_hint" = "下のボタンをタップして録音を開始";
+"recorder.preparing" = "録音準備完了";
+"recorder.retry_upload" = "再アップロード";
+"recorder.delete" = "削除";
+"recorder.upload_failed" = "アップロード失敗";
 "recorder.upload_progress" = "%d%%";
-"recorder.processing" = "Processing...";
-"recorder.uploading" = "Uploading...";
-"recorder.dependency_not_injected" = "Dependency not injected";
-"recorder.meeting_not_prepared" = "Meeting not prepared. Please select a project first";
-"recorder.microphone_permission_denied" = "Microphone permission denied";
-"recorder.unknown_error" = "Unknown error";
+"recorder.processing" = "処理中...";
+"recorder.uploading" = "アップロード中...";
+"recorder.dependency_not_injected" = "依存関係が注入されていません";
+"recorder.meeting_not_prepared" = "会議が準備されていません。まずプロジェクトを選択してください";
+"recorder.microphone_permission_denied" = "マイク権限が拒否されました";
+"recorder.unknown_error" = "不明なエラー";
 
 /* Upload Status */
-"upload_status.pending" = "Pending";
-"upload_status.uploading" = "Uploading";
-"upload_status.completed" = "Completed";
-"upload_status.failed" = "Failed";
+"upload_status.pending" = "保留中";
+"upload_status.uploading" = "アップロード中";
+"upload_status.completed" = "完了";
+"upload_status.failed" = "失敗";
 
 /* Tab Bar */
-"tab.projects" = "Projects";
-"tab.drafts" = "Local Recordings";
-"tab.profile" = "My";
+"tab.projects" = "プロジェクト";
+"tab.drafts" = "ローカル録音";
+"tab.profile" = "マイページ";
 
 /* Drafts */
-"drafts.title" = "Local Recordings";
-"drafts.empty_title" = "No Recordings";
-"drafts.empty_message" = "Tap the red button at the bottom right to start recording";
-"draft_detail.title" = "Draft Details";
-"draft_detail.recording_info" = "Recording Info";
-"draft_detail.file_name" = "File Name";
-"draft_detail.duration" = "Duration";
-"draft_detail.file_size" = "Size";
-"draft_detail.created_at" = "Created At";
-"draft_detail.custom_name" = "Custom Name";
-"draft_detail.custom_name_placeholder" = "Enter recording name (optional)";
-"draft_detail.select_project" = "Select Project";
-"draft_detail.no_projects" = "No projects available";
-"draft_detail.project" = "Project";
-"draft_detail.please_select" = "Please select a project";
-"draft_detail.binding" = "Binding...";
-"draft_detail.bind_and_upload" = "Upload";
-"draft_detail.binding_description" = "Created from draft binding";
-"draft_detail.recording_not_found" = "Recording not found";
+"drafts.title" = "ローカル録音";
+"drafts.empty_title" = "録音がありません";
+"drafts.empty_message" = "右下の赤いボタンをタップして録音を開始";
+"draft_detail.title" = "下書き詳細";
+"draft_detail.recording_info" = "録音情報";
+"draft_detail.file_name" = "ファイル名";
+"draft_detail.duration" = "長さ";
+"draft_detail.file_size" = "サイズ";
+"draft_detail.created_at" = "作成日時";
+"draft_detail.custom_name" = "カスタム名";
+"draft_detail.custom_name_placeholder" = "録音名を入力（オプション）";
+"draft_detail.select_project" = "プロジェクトを選択";
+"draft_detail.no_projects" = "利用可能なプロジェクトがありません";
+"draft_detail.project" = "プロジェクト";
+"draft_detail.please_select" = "プロジェクトを選択してください";
+"draft_detail.binding" = "紐付け中...";
+"draft_detail.bind_and_upload" = "アップロード";
+"draft_detail.binding_description" = "下書き紐付けから作成";
+"draft_detail.recording_not_found" = "録音が見つかりません";
 
 /* Quick Recorder */
-"quick_recorder.title" = "Quick Record";
-"quick_recorder.default_name" = "Quick Record";
+"quick_recorder.title" = "クイック録音";
+"quick_recorder.default_name" = "クイック録音";
 
 /* Waveform */
 "waveform.accessibility_label" = "録音波形";

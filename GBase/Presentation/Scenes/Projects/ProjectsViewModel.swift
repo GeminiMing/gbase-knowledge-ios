@@ -12,12 +12,17 @@ final class ProjectsViewModel: ObservableObject {
             filterProjects()
         }
     }
+    @Published var searchType: String = "MY_MODIFIABLE" {
+        didSet {
+            Task { await refresh() }
+        }
+    }
 
     private var container: DIContainer?
     private var currentPage: Int = 1
     private let pageSize: Int = 20
     private var hasMore: Bool = true
-    private let allowedRoles: Set<ProjectRole> = [.owner, .contributor]
+    private let allowedRoles: Set<ProjectRole> = [.owner, .contributor, .sharee]
 
     init(container: DIContainer? = nil) {
         self.container = container
@@ -47,7 +52,7 @@ final class ProjectsViewModel: ObservableObject {
         do {
             let response = try await container.fetchProjectsUseCase.execute(page: currentPage,
                                                                             pageSize: pageSize,
-                                                                            searchType: "ALL",
+                                                                            searchType: searchType,
                                                                             title: searchText.isEmpty ? "" : searchText)
             let filtered = response.projects.filter { allowedRoles.contains($0.myRole) }
 

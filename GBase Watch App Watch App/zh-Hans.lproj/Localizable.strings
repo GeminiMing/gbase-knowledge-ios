@@ -1,0 +1,11 @@
+/* Watch App Localizations */
+
+/* Idle View */
+"watch.tap_to_record" = "轻点录音";
+
+/* Recording View */
+"watch.tap_to_stop" = "轻点停止";
+"watch.rec_indicator" = "录音中";
+
+/* Recording saved confirmation */
+"watch_recording.saved_to_iphone" = "已保存到iPhone";

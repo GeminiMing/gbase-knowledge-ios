@@ -103,7 +103,7 @@ struct IdleView: View {
             .handGestureShortcut(.primaryAction)
 
             // Hint text
-            Text("Tap to Record")
+            Text(NSLocalizedString("watch.tap_to_record", comment: ""))
                 .font(.system(size: 14, weight: .regular, design: .rounded))
                 .foregroundColor(.white.opacity(0.6))
 
@@ -133,7 +133,7 @@ struct RecordingView: View {
                     .opacity(blinkAnimation ? 1.0 : 0.3)
                     .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: blinkAnimation)
 
-                Text("REC")
+                Text(NSLocalizedString("watch.rec_indicator", comment: ""))
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundColor(.red)
             }
@@ -186,7 +186,7 @@ struct RecordingView: View {
             .handGestureShortcut(.primaryAction)
 
             // Stop hint
-            Text("Tap to Stop")
+            Text(NSLocalizedString("watch.tap_to_stop", comment: ""))
                 .font(.system(size: 12, weight: .regular, design: .rounded))
                 .foregroundColor(.white.opacity(0.5))
 

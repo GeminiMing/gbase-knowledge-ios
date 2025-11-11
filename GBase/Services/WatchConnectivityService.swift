@@ -143,13 +143,29 @@ extension WatchConnectivityService: WCSessionDelegate {
     private func handleReceivedFile(_ file: WCSessionFile) async {
         let metadata = file.metadata ?? [:]
 
-        guard let fileName = metadata["fileName"] as? String,
-              let duration = metadata["duration"] as? TimeInterval,
-              let timestamp = metadata["timestamp"] as? TimeInterval,
-              let fileSize = metadata["fileSize"] as? Int else {
-            print("Invalid file metadata")
-            return
+        print("📥 [iPhone] Processing received file metadata: \(metadata)")
+
+        // Extract metadata with fallback values
+        let fileName = (metadata["fileName"] as? String) ?? file.fileURL.lastPathComponent
+        let duration = (metadata["duration"] as? TimeInterval) ?? 0
+        let timestamp = (metadata["timestamp"] as? TimeInterval) ?? Date().timeIntervalSince1970
+
+        // Try to get file size from metadata, or from actual file
+        var fileSize: Int
+        if let metadataSize = metadata["fileSize"] as? Int {
+            fileSize = metadataSize
+        } else {
+            // Fallback: get actual file size
+            do {
+                let attributes = try FileManager.default.attributesOfItem(atPath: file.fileURL.path)
+                fileSize = (attributes[.size] as? Int) ?? 0
+            } catch {
+                print("⚠️ [iPhone] Could not get file size: \(error)")
+                fileSize = 0
+            }
         }
+
+        print("📥 [iPhone] Parsed metadata - fileName: \(fileName), duration: \(duration), timestamp: \(timestamp), fileSize: \(fileSize)")
 
         do {
             // Move file to app's documents directory
@@ -178,9 +194,12 @@ extension WatchConnectivityService: WCSessionDelegate {
             // Save to local store
             try recordingLocalStore.upsert(recording)
 
-            // Update published property
+            // Update published property and send notification to refresh UI
             await MainActor.run {
                 self.lastReceivedRecording = recording
+                // Notify DraftsView to refresh
+                print("📢 [iPhone] Posting RefreshRecordings notification for Watch recording")
+                NotificationCenter.default.post(name: NSNotification.Name("RefreshRecordings"), object: nil)
             }
 
             // Send confirmation back to Watch

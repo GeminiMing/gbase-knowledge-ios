@@ -3,7 +3,7 @@ import Foundation
 public final class FileStorageService {
     private let fileManager: FileManager
     private let recordingsDirectoryName = "Recordings"
-    private let recordingFileExtension = "wav"
+    private let recordingFileExtension = "m4a"
 
     public init(fileManager: FileManager = .default) {
         self.fileManager = fileManager
