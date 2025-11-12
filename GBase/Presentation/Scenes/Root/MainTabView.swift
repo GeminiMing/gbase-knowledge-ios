@@ -124,7 +124,15 @@ struct MainTabView: View {
                     viewModel.prepare(for: project, meeting: meeting)
                 } catch {
                     print("❌ 创建会议失败: \(error)")
-                    // 如果创建会议失败,仍然允许录音,但作为草稿
+
+                    // 检查是否是网络错误
+                    if let apiError = error as? APIError, apiError == .networkUnavailable {
+                        // 网络不可用时，显示错误但仍允许作为草稿录音
+                        print("⚠️ [MainTabView] Network unavailable, switching to draft mode")
+                        viewModel.errorMessage = apiError.localizedDescription
+                    }
+
+                    // 如果创建会议失败,允许录音,但作为草稿
                     recordingMeeting = nil
                     viewModel.prepareForQuickRecording()
                 }
@@ -236,11 +244,13 @@ struct QuickRecorderView: View {
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
             }
             .onAppear {
-                // 自动开始录音
+                // 自动开始录音（只在没有错误的情况下）
                 Task {
-                    if case .idle = viewModel.status {
+                    if case .idle = viewModel.status, viewModel.errorMessage == nil {
                         print("🎤 [QuickRecorderView] Auto-starting recording on appear")
                         await viewModel.startRecording()
+                    } else if viewModel.errorMessage != nil {
+                        print("⚠️ [QuickRecorderView] Skipping auto-start due to existing error")
                     }
                 }
             }

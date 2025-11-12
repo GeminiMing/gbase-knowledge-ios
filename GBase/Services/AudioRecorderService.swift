@@ -278,6 +278,15 @@ public final class AudioRecorderService: NSObject {
                 let resumed = recorder.record()
                 if resumed {
                     print("✅ 录音恢复成功（剩余重试次数: \(retryCount)）")
+                    print("📊 当前录音时长: \(recorder.currentTime)秒")
+
+                    // 确保UI更新继续工作
+                    if displayLink == nil {
+                        activateDisplayLink()
+                    }
+                    if timer == nil {
+                        activateTimer()
+                    }
                 } else {
                     print("⚠️ 录音恢复失败，\(retryCount - 1) 次后重试")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -286,6 +295,7 @@ public final class AudioRecorderService: NSObject {
                 }
             } else {
                 print("✅ 录音器已在运行中")
+                print("📊 当前录音时长: \(recorder.currentTime)秒")
             }
         } catch {
             print("❌ 恢复录音配置失败: \(error)")
@@ -378,7 +388,6 @@ public final class AudioRecorderService: NSObject {
     }
 
     @objc private func updateDuration() {
-        guard let startDate else { return }
         guard let recorder = recorder else { return }
 
         // 检查录音器是否仍在运行（每10次检查一次，避免过于频繁）
@@ -398,8 +407,9 @@ public final class AudioRecorderService: NSObject {
             }
         }
 
-        // 优先使用 recorder.currentTime（更准确）
-        let duration = recorder.isRecording ? recorder.currentTime : Date().timeIntervalSince(startDate)
+        // 始终使用 recorder.currentTime，这是录音器实际记录的准确时长
+        // 即使录音暂停，currentTime 也会保持在暂停时的值，不会继续增长
+        let duration = recorder.currentTime
 
         var level: Float = 0
         if recorder.isRecording {

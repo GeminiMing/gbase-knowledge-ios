@@ -1,6 +1,6 @@
 import Foundation
 
-public enum APIError: Error, LocalizedError {
+public enum APIError: Error, LocalizedError, Equatable {
     case invalidURL
     case decodingFailed(Error)
     case encodingFailed(Error)
@@ -36,5 +36,27 @@ public enum APIError: Error, LocalizedError {
             return error.localizedDescription
         }
     }
+
+    // Implement Equatable
+    public static func == (lhs: APIError, rhs: APIError) -> Bool {
+        switch (lhs, rhs) {
+        case (.invalidURL, .invalidURL),
+             (.unauthorized, .unauthorized),
+             (.forbidden, .forbidden),
+             (.notFound, .notFound),
+             (.networkUnavailable, .networkUnavailable),
+             (.timeout, .timeout):
+            return true
+        case (.serverError(let lhsCode, let lhsMsg), .serverError(let rhsCode, let rhsMsg)):
+            return lhsCode == rhsCode && lhsMsg == rhsMsg
+        case (.decodingFailed(let lhsError), .decodingFailed(let rhsError)),
+             (.encodingFailed(let lhsError), .encodingFailed(let rhsError)),
+             (.unknown(let lhsError), .unknown(let rhsError)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
+        default:
+            return false
+        }
+    }
 }
+
 
