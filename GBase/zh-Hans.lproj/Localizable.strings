@@ -6,6 +6,11 @@
 "common.loading" = "加载中...";
 "common.back" = "返回";
 
+/* Error Messages */
+"error.server_internal_error" = "服务器内部错误，请稍后重试";
+"error.server_error" = "服务器错误，请稍后重试";
+"error.server_error_default" = "服务器错误";
+
 /* Login */
 "login.title" = "登录";
 "login.email" = "邮箱";
@@ -16,6 +21,7 @@
 "login.password_placeholder" = "Enter password";
 "login.remember_password" = "记住密码";
 "login.empty_fields" = "请输入邮箱和密码";
+"login.invalid_credentials" = "无效的用户名或密码";
 
 /* Profile */
 "profile.title" = "我的";
@@ -72,6 +78,7 @@
 "tab.projects" = "项目";
 "tab.drafts" = "本地录音";
 "tab.profile" = "我的";
+"tab.recorder" = "录音";
 
 /* Drafts */
 "drafts.title" = "本地录音";

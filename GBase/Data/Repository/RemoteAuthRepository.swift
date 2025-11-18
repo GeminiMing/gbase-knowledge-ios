@@ -20,8 +20,12 @@ public final class RemoteAuthRepository: AuthRepository {
                                              responseType: LoginResponseDTO.self)
 
         guard response.success, let data = response.data else {
-            let message = response.fieldErrors?.first?.message ?? "登录失败"
-            throw APIError.serverError(statusCode: 422, message: message)
+            // 如果有明确的错误消息，使用它；否则返回"无效的用户名或密码"
+            if let errorMessage = response.fieldErrors?.first?.message, !errorMessage.isEmpty {
+                throw APIError.serverError(statusCode: 422, message: errorMessage)
+            } else {
+                throw APIError.invalidCredentials
+            }
         }
 
         let session = AuthMapper.map(session: data.loginToken)

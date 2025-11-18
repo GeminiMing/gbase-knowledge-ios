@@ -8,6 +8,7 @@ public enum APIError: Error, LocalizedError, Equatable {
     case forbidden
     case notFound
     case serverError(statusCode: Int, message: String)
+    case invalidCredentials
     case networkUnavailable
     case timeout
     case unknown(Error)
@@ -26,8 +27,19 @@ public enum APIError: Error, LocalizedError, Equatable {
             return "权限不足"
         case .notFound:
             return "资源不存在"
-        case .serverError(_, let message):
-            return "服务器错误: \(message)"
+        case .serverError(let statusCode, let message):
+            // 如果消息已经是友好的错误消息（不包含HTML标签），直接返回
+            if !message.contains("<") && !message.contains("<!DOCTYPE") {
+                return "\(LocalizedStringKey.errorServerErrorDefault.localized): \(message)"
+            }
+            // 对于HTML错误响应，返回友好的错误消息
+            if statusCode >= 500 {
+                return LocalizedStringKey.errorServerInternalError.localized
+            } else {
+                return LocalizedStringKey.errorServerError.localized
+            }
+        case .invalidCredentials:
+            return LocalizedStringKey.loginInvalidCredentials.localized
         case .networkUnavailable:
             return "网络不可用"
         case .timeout:
@@ -49,6 +61,8 @@ public enum APIError: Error, LocalizedError, Equatable {
             return true
         case (.serverError(let lhsCode, let lhsMsg), .serverError(let rhsCode, let rhsMsg)):
             return lhsCode == rhsCode && lhsMsg == rhsMsg
+        case (.invalidCredentials, .invalidCredentials):
+            return true
         case (.decodingFailed(let lhsError), .decodingFailed(let rhsError)),
              (.encodingFailed(let lhsError), .encodingFailed(let rhsError)),
              (.unknown(let lhsError), .unknown(let rhsError)):

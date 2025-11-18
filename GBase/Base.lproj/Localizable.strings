@@ -6,6 +6,11 @@
 "common.loading" = "Loading...";
 "common.back" = "Back";
 
+/* Error Messages */
+"error.server_internal_error" = "Internal server error, please try again later";
+"error.server_error" = "Server error, please try again later";
+"error.server_error_default" = "Server error";
+
 /* Login */
 "login.title" = "Sign In";
 "login.email" = "Email";
@@ -14,6 +19,9 @@
 "login.welcome_back" = "Welcome back";
 "login.email_placeholder" = "your@email.com";
 "login.password_placeholder" = "Enter password";
+"login.remember_password" = "Remember password";
+"login.empty_fields" = "Please enter email and password";
+"login.invalid_credentials" = "Invalid username or password";
 
 /* Profile */
 "profile.title" = "My";
@@ -68,7 +76,9 @@
 
 /* Tab Bar */
 "tab.projects" = "Projects";
+"tab.drafts" = "Drafts";
 "tab.profile" = "My";
+"tab.recorder" = "Record";
 
 /* Waveform */
 "waveform.accessibility_label" = "Recording Waveform";

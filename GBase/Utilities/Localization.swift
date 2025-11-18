@@ -91,6 +91,7 @@ enum LocalizedStringKey {
     static let loginPasswordPlaceholder = "login.password_placeholder"
     static let loginRememberPassword = "login.remember_password"
     static let loginEmptyFields = "login.empty_fields"
+    static let loginInvalidCredentials = "login.invalid_credentials"
     
     // Profile
     static let profileTitle = "profile.title"
@@ -142,11 +143,12 @@ enum LocalizedStringKey {
     static let uploadStatusUploading = "upload_status.uploading"
     static let uploadStatusCompleted = "upload_status.completed"
     static let uploadStatusFailed = "upload_status.failed"
-    
+
     // Tab Bar
     static let tabProjects = "tab.projects"
     static let tabDrafts = "tab.drafts"
     static let tabProfile = "tab.profile"
+    static let tabRecorder = "tab.recorder"
 
     // Drafts
     static let draftsTitle = "drafts.title"
@@ -180,5 +182,10 @@ enum LocalizedStringKey {
 
     // Waveform
     static let waveformAccessibilityLabel = "waveform.accessibility_label"
+    
+    // Error Messages
+    static let errorServerInternalError = "error.server_internal_error"
+    static let errorServerError = "error.server_error"
+    static let errorServerErrorDefault = "error.server_error_default"
 }
 

@@ -79,6 +79,13 @@ public final class APIClient {
                                   headers: headers,
                                   responseType: responseType,
                                   hasRetried: true)
+        } catch let decodingError as DecodingError {
+            // 如果是登录请求且解码失败，返回友好的错误消息
+            if endpoint.path.contains("/user/login/password") {
+                throw APIError.invalidCredentials
+            }
+            await notifyFailure(error: decodingError, request: preparedRequest)
+            throw APIError.decodingFailed(decodingError)
         } catch {
             await notifyFailure(error: error, request: preparedRequest)
             if let apiError = error as? APIError {
@@ -123,9 +130,39 @@ public final class APIClient {
         case 404:
             throw APIError.notFound
         default:
-            let message = String(data: data, encoding: .utf8) ?? ""
+            let rawMessage = String(data: data, encoding: .utf8) ?? ""
+            // 检查是否是HTML响应，如果是则使用友好的错误消息
+            let message = extractErrorMessage(from: rawMessage, contentType: httpResponse.value(forHTTPHeaderField: "Content-Type"))
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: message)
         }
+    }
+    
+    private func extractErrorMessage(from rawMessage: String, contentType: String?) -> String {
+        // 检查Content-Type是否为HTML
+        if let contentType = contentType?.lowercased(), contentType.contains("text/html") {
+            return LocalizedStringKey.errorServerInternalError.localized
+        }
+        
+        // 检查消息是否以HTML标签开头
+        let trimmedMessage = rawMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedMessage.hasPrefix("<!DOCTYPE") || trimmedMessage.hasPrefix("<html") || trimmedMessage.hasPrefix("<!doctype") {
+            return LocalizedStringKey.errorServerInternalError.localized
+        }
+        
+        // 尝试解析JSON格式的错误消息
+        if let jsonData = rawMessage.data(using: .utf8),
+           let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+           let message = json["message"] as? String {
+            return message
+        }
+        
+        // 如果消息看起来像HTML（包含HTML标签），返回友好消息
+        if rawMessage.contains("<html") || rawMessage.contains("</html>") || rawMessage.contains("<body") {
+            return LocalizedStringKey.errorServerInternalError.localized
+        }
+        
+        // 否则返回原始消息（可能是纯文本错误消息）
+        return rawMessage.isEmpty ? LocalizedStringKey.errorServerErrorDefault.localized : rawMessage
     }
 
     private func mapURLError(_ error: URLError) -> APIError {
