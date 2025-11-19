@@ -67,6 +67,8 @@
 "recorder.meeting_not_prepared" = "Meeting not prepared. Please select a project first";
 "recorder.microphone_permission_denied" = "Microphone permission denied";
 "recorder.unknown_error" = "Unknown error";
+"recorder.save_to_project" = "Save to Project";
+"recorder.save_later" = "Later";
 
 /* Upload Status */
 "upload_status.pending" = "Pending";

@@ -67,6 +67,8 @@
 "recorder.meeting_not_prepared" = "会議が準備されていません。まずプロジェクトを選択してください";
 "recorder.microphone_permission_denied" = "マイクの権限が許可されていません";
 "recorder.unknown_error" = "不明なエラー";
+"recorder.save_to_project" = "プロジェクトに保存";
+"recorder.save_later" = "後で";
 
 /* Upload Status */
 "upload_status.pending" = "待機中";

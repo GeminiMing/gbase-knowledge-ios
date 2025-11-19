@@ -1,5 +1,4 @@
 import SwiftUI
-import WebKit
 
 struct MainTabView: View {
     @Environment(\.diContainer) private var container
@@ -12,73 +11,54 @@ struct MainTabView: View {
         TabView(selection: $appState.selectedTab) {
             ProjectsView()
                 .tabItem {
-                    Label(LocalizedStringKey.tabProjects.localized, systemImage: "folder")
+                    Image(systemName: "folder")
+                    Text(LocalizedStringKey.tabProjects.localized)
                 }
                 .tag(AppState.MainTab.projects)
 
             DraftsView()
                 .tabItem {
-                    Label(LocalizedStringKey.tabDrafts.localized, systemImage: "tray")
+                    Image(systemName: "tray")
+                    Text(LocalizedStringKey.tabDrafts.localized)
                 }
                 .tag(AppState.MainTab.drafts)
                 .onAppear {
-                    // 切换到草稿页时清除选中的项目
                     if appState.selectedTab == .drafts {
                         print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
                         appState.selectedProject = nil
                     }
                 }
 
-            // Center recorder button in tab bar
-            Color.clear
-                .tabItem {
-                    ZStack {
-                        Circle()
-                            .fill(Color(hex: "00a4d6"))
-                            .frame(width: 56, height: 56)
-                            .shadow(color: Color(hex: "00a4d6").opacity(0.3), radius: 4, x: 0, y: 2)
-
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
-                    }
-                    .offset(y: -8)
-                }
-                .tag(AppState.MainTab.recorder)
-
             ProfileView()
                 .tabItem {
-                    Label(LocalizedStringKey.tabProfile.localized, systemImage: "person.circle")
+                    Image(systemName: "person.circle")
+                    Text(LocalizedStringKey.tabProfile.localized)
                 }
                 .tag(AppState.MainTab.profile)
                 .onAppear {
-                    // 切换到个人页时清除选中的项目
                     if appState.selectedTab == .profile {
                         print("👤 [MainTabView] Switched to profile tab, clearing selectedProject")
                         appState.selectedProject = nil
                     }
                 }
 
-            // Web view for hub.gbase.ai as a full page
-            HubView()
-            .tabItem {
-                Label("Hub", systemImage: "globe")
-            }
-            .tag(AppState.MainTab.hub)
+            Color.clear
+                .tabItem {
+                    Image(systemName: "mic.circle.fill")
+                    Text(LocalizedStringKey.tabRecorder.localized)
+                }
+                .tag(AppState.MainTab.recorder)
         }
         .navigationTitle(appState.authContext?.user.name ?? "")
         .onChange(of: appState.selectedTab) { newTab in
-            // Intercept recorder tab selection
             if newTab == .recorder {
                 handleRecordButtonTap()
-                // Reset to previous valid tab
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     if appState.selectedTab == .recorder {
                         appState.selectedTab = previousTab
                     }
                 }
             } else if newTab != .recorder {
-                // Save the current tab as previous tab (only if not recorder)
                 previousTab = newTab
             }
         }
@@ -102,16 +82,19 @@ struct MainTabView: View {
     }
 
     private func handleRecordButtonTap() {
-        Task {
-            guard let viewModel = appState.recorderViewModel else { return }
+        guard let viewModel = appState.recorderViewModel else { return }
 
-            print("🔴 [MainTabView] Quick record button clicked")
-            print("🔴 [MainTabView] appState.selectedProject: \(String(describing: appState.selectedProject))")
-            print("🔴 [MainTabView] Current tab: \(appState.selectedTab)")
+        print("🔴 [MainTabView] Quick record button clicked")
+        print("🔴 [MainTabView] appState.selectedProject: \(String(describing: appState.selectedProject))")
+        print("🔴 [MainTabView] Current tab: \(appState.selectedTab)")
 
-            // 如果有选中的项目,为该项目创建会议并绑定
-            if let project = appState.selectedProject {
-                print("✅ [MainTabView] Project found: \(project.title)")
+        // 先显示弹窗，然后在后台创建会议
+        showingQuickRecorder = true
+        
+        // 如果有选中的项目,为该项目创建会议并绑定（在后台异步执行）
+        if let project = appState.selectedProject {
+            print("✅ [MainTabView] Project found: \(project.title)")
+            Task {
                 do {
                     let meeting = try await container.createMeetingUseCase.execute(
                         projectId: project.id,
@@ -120,8 +103,10 @@ struct MainTabView: View {
                         location: nil,
                         description: nil
                     )
-                    recordingMeeting = meeting
-                    viewModel.prepare(for: project, meeting: meeting)
+                    await MainActor.run {
+                        recordingMeeting = meeting
+                        viewModel.prepare(for: project, meeting: meeting)
+                    }
                 } catch {
                     print("❌ 创建会议失败: \(error)")
 
@@ -129,23 +114,23 @@ struct MainTabView: View {
                     if let apiError = error as? APIError, apiError == .networkUnavailable {
                         // 网络不可用时，显示错误但仍允许作为草稿录音
                         print("⚠️ [MainTabView] Network unavailable, switching to draft mode")
-                        viewModel.errorMessage = apiError.localizedDescription
+                        await MainActor.run {
+                            viewModel.errorMessage = apiError.localizedDescription
+                        }
                     }
 
                     // 如果创建会议失败,允许录音,但作为草稿
-                    recordingMeeting = nil
-                    viewModel.prepareForQuickRecording()
+                    await MainActor.run {
+                        recordingMeeting = nil
+                        viewModel.prepareForQuickRecording()
+                    }
                 }
-            } else {
-                // 没有选中项目,作为草稿录音
-                print("⚠️ [MainTabView] No project selected, using draft mode")
-                recordingMeeting = nil
-                viewModel.prepareForQuickRecording()
             }
-
-            await MainActor.run {
-                showingQuickRecorder = true
-            }
+        } else {
+            // 没有选中项目,作为草稿录音
+            print("⚠️ [MainTabView] No project selected, using draft mode")
+            recordingMeeting = nil
+            viewModel.prepareForQuickRecording()
         }
     }
 }
@@ -189,7 +174,10 @@ struct QuickRecorderView: View {
                     Task {
                         if case .recording = viewModel.status {
                             await viewModel.stopRecording()
-                            dismiss()
+                            // 如果是草稿模式，不自动关闭，等待用户选择是否保存到项目
+                            if !viewModel.isDraftMode {
+                                dismiss()
+                            }
                         } else {
                             await viewModel.startRecording()
                         }
@@ -243,6 +231,12 @@ struct QuickRecorderView: View {
                       message: Text(viewModel.errorMessage ?? ""),
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
             }
+            .sheet(isPresented: Binding<Bool>(
+                get: { viewModel.showSaveToProjectAlert },
+                set: { if !$0 { viewModel.dismissSaveToProjectAlert() } }
+            )) {
+                SaveToProjectSheet(viewModel: viewModel)
+            }
             .onAppear {
                 // 自动开始录音（只在没有错误的情况下）
                 Task {
@@ -264,94 +258,104 @@ struct QuickRecorderView: View {
     }
 }
 
+// Save to Project Sheet
+struct SaveToProjectSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.diContainer) private var container
+    @ObservedObject var viewModel: RecorderViewModel
+    @State private var projects: [RecorderViewModel.ProjectOption] = []
+    @State private var isLoadingProjects = true
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(header: Text(LocalizedStringKey.draftDetailSelectProject.localized)) {
+                    if isLoadingProjects {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                            Spacer()
+                        }
+                    } else if projects.isEmpty {
+                        Text(LocalizedStringKey.draftDetailNoProjects.localized)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Picker(LocalizedStringKey.draftDetailProject.localized, selection: Binding<String?>(
+                            get: { viewModel.saveToProjectSelectedProjectId },
+                            set: { viewModel.saveToProjectSelectedProjectId = $0 }
+                        )) {
+                            Text(LocalizedStringKey.draftDetailPleaseSelect.localized).tag(nil as String?)
+                            ForEach(projects) { project in
+                                Text(project.title).tag(project.id as String?)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                }
+                
+                Section {
+                    Button(action: {
+                        Task {
+                            await viewModel.saveDraftToProject()
+                            if !viewModel.showSaveToProjectAlert {
+                                dismiss()
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Spacer()
+                            if viewModel.isBindingToProject {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                                Text(LocalizedStringKey.draftDetailBinding.localized)
+                                    .padding(.leading, 8)
+                            } else {
+                                Text(LocalizedStringKey.draftDetailBindAndUpload.localized)
+                                    .fontWeight(.semibold)
+                            }
+                            Spacer()
+                        }
+                    }
+                    .disabled(viewModel.saveToProjectSelectedProjectId == nil || viewModel.isBindingToProject)
+                }
+            }
+            .navigationTitle(LocalizedStringKey.recorderSaveToProject.localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(LocalizedStringKey.recorderSaveLater.localized) {
+                        viewModel.dismissSaveToProjectAlert()
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                Task {
+                    await loadProjects()
+                }
+            }
+        }
+    }
+    
+    private func loadProjects() async {
+        isLoadingProjects = true
+        defer { isLoadingProjects = false }
+        
+        do {
+            let map = try await container.fetchEditableProjectsUseCase.execute()
+            projects = map.map { RecorderViewModel.ProjectOption(id: $0.key, title: $0.value) }
+                          .sorted { $0.title < $1.title }
+        } catch {
+            // Handle error silently or show error message
+            print("Failed to load projects: \(error)")
+        }
+    }
+}
+
 #Preview {
     MainTabView()
         .environment(\.diContainer, .preview)
         .environmentObject(DIContainer.preview.appState)
-}
-
-// MARK: - HubView with Auto Login
-struct HubView: View {
-    @Environment(\.diContainer) private var container
-    @State private var hubURL: URL?
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if let url = hubURL {
-                    WebView(url: url)
-                } else {
-                    ProgressView("Loading...")
-                }
-            }
-            .navigationTitle("Hub")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-        .task {
-            await loadHubURL()
-        }
-    }
-
-    private func loadHubURL() async {
-        // Get Hub base URL from environment configuration
-        let hubBaseURL = container.apiConfiguration.environment.hubBaseURL
-
-        // Try to load saved credentials
-        guard let credentials = try? await container.credentialsStore.loadCredentials() else {
-            // No credentials, just load Hub without auto-login
-            hubURL = hubBaseURL
-            print("🌐 [HubView] Loading Hub without auto-login: \(hubBaseURL.absoluteString)")
-            return
-        }
-
-        // Build URL with auto-login parameters
-        var components = URLComponents(url: hubBaseURL.appendingPathComponent("auth/login"), resolvingAgainstBaseURL: false)!
-        components.queryItems = [
-            URLQueryItem(name: "auto_login", value: "1"),
-            URLQueryItem(name: "auto_email", value: credentials.email),
-            URLQueryItem(name: "auto_password", value: credentials.password),
-            URLQueryItem(name: "auto_remember", value: "1")
-        ]
-
-        hubURL = components.url ?? hubBaseURL
-        print("🌐 [HubView] Loading Hub with auto-login for: \(credentials.email)")
-        print("🌐 [HubView] Hub URL: \(hubURL?.absoluteString ?? "nil")")
-    }
-}
-
-// MARK: - WebView
-struct WebView: UIViewRepresentable {
-    let url: URL
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-
-    func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
-        webView.navigationDelegate = context.coordinator
-        webView.load(URLRequest(url: url))
-        return webView
-    }
-
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        // No update needed
-    }
-
-    class Coordinator: NSObject, WKNavigationDelegate {
-        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            if let url = navigationAction.request.url {
-                print("🌐 [WebView] Navigating to: \(url.absoluteString)")
-            }
-            decisionHandler(.allow)
-        }
-
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            if let url = webView.url {
-                print("🌐 [WebView] Finished loading: \(url.absoluteString)")
-            }
-        }
-    }
 }
 
 // MARK: - Color Extension for Hex Support

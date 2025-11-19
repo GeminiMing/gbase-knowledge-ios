@@ -137,6 +137,8 @@ enum LocalizedStringKey {
     static let recorderMeetingNotPrepared = "recorder.meeting_not_prepared"
     static let recorderMicrophonePermissionDenied = "recorder.microphone_permission_denied"
     static let recorderUnknownError = "recorder.unknown_error"
+    static let recorderSaveToProject = "recorder.save_to_project"
+    static let recorderSaveLater = "recorder.save_later"
     
     // Upload Status
     static let uploadStatusPending = "upload_status.pending"

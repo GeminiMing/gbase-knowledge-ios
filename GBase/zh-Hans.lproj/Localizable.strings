@@ -67,6 +67,8 @@
 "recorder.meeting_not_prepared" = "未准备会议，请先在项目列表选择项目";
 "recorder.microphone_permission_denied" = "麦克风权限未授权";
 "recorder.unknown_error" = "未知错误";
+"recorder.save_to_project" = "保存到项目";
+"recorder.save_later" = "稍后";
 
 /* Upload Status */
 "upload_status.pending" = "待上传";

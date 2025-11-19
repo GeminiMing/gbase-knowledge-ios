@@ -25,13 +25,25 @@ public final class RecorderViewModel: NSObject, ObservableObject {
     @Published var playingRecordingId: String?
     @Published var waveformSamples: [CGFloat]
     @Published var isDraftMode: Bool = false  // New: indicates if recording without project
+    @Published var showSaveToProjectAlert: Bool = false  // Show alert after draft recording
+    @Published var completedDraftRecordingId: String?  // ID of the completed draft recording
+    @Published var saveToProjectSelectedProjectId: String?  // Selected project for save to project
+    @Published var isBindingToProject: Bool = false  // Binding in progress
 
-    struct ProjectOption: Identifiable, Equatable {
-        let id: String
-        let title: String
+    public struct ProjectOption: Identifiable, Equatable {
+        public let id: String
+        public let title: String
+        
+        public init(id: String, title: String) {
+            self.id = id
+            self.title = title
+        }
     }
 
-    private var container: DIContainer?
+    var container: DIContainer? {
+        get { _container }
+    }
+    private var _container: DIContainer?
     private var recordingURL: URL?
     private var recordingStartAt: Date?
     private let waveformCapacity = 24
@@ -42,7 +54,7 @@ public final class RecorderViewModel: NSObject, ObservableObject {
     }
 
     func configure(container: DIContainer, shouldLoadProjects: Bool = true) {
-        self.container = container
+        self._container = container
         container.audioRecorderService.delegate = self
         container.audioPlayerService.delegate = self
         resetWaveform()
@@ -187,7 +199,10 @@ public final class RecorderViewModel: NSObject, ObservableObject {
                 try await upload(recording: recording)
             } else {
                 print("🎤 [RecorderViewModel] Saving as draft (draft mode)")
+                // Save the recording ID and show alert
+                completedDraftRecordingId = recording.id
                 status = .idle
+                showSaveToProjectAlert = true
             }
         } catch {
             print("❌ [RecorderViewModel] Error in stopRecording: \(error)")
@@ -391,6 +406,73 @@ public final class RecorderViewModel: NSObject, ObservableObject {
         } else {
             return Double(CMTimeGetSeconds(asset.duration))
         }
+    }
+    
+    // Save draft recording to project
+    func saveDraftToProject() async {
+        guard let container, let recordingId = completedDraftRecordingId, let projectId = saveToProjectSelectedProjectId else {
+            return
+        }
+        
+        isBindingToProject = true
+        defer { isBindingToProject = false }
+        
+        do {
+            // Fetch the recording
+            let recordings = try container.recordingLocalStore.fetch(projectId: nil, status: nil)
+            guard let recording = recordings.first(where: { $0.id == recordingId }) else {
+                errorMessage = LocalizedStringKey.draftDetailRecordingNotFound.localized
+                return
+            }
+            
+            // Create a meeting for this recording
+            let meetingTitle = recording.customName ?? "\(LocalizedStringKey.quickRecorderDefaultName.localized) - \(formatDate(recording.createdAt))"
+            let meeting = try await container.createMeetingUseCase.execute(
+                projectId: projectId,
+                title: meetingTitle,
+                meetingTime: recording.createdAt,
+                location: nil,
+                description: LocalizedStringKey.draftDetailBindingDescription.localized
+            )
+            
+            // Bind the draft to the project and meeting
+            try container.bindDraftToProjectUseCase.execute(
+                recordingId: recordingId,
+                projectId: projectId,
+                meetingId: meeting.id,
+                customName: recording.customName
+            )
+            
+            // Fetch the updated recording
+            let updatedRecordings = try container.recordingLocalStore.fetch(projectId: nil, status: nil)
+            guard let updatedRecording = updatedRecordings.first(where: { $0.id == recordingId }) else {
+                errorMessage = LocalizedStringKey.draftDetailRecordingNotFound.localized
+                return
+            }
+            
+            // Upload the recording
+            try await upload(recording: updatedRecording)
+            
+            // Clear the alert state
+            showSaveToProjectAlert = false
+            completedDraftRecordingId = nil
+            saveToProjectSelectedProjectId = nil
+            await loadLocalRecordings()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    func dismissSaveToProjectAlert() {
+        showSaveToProjectAlert = false
+        completedDraftRecordingId = nil
+        saveToProjectSelectedProjectId = nil
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM-dd HH:mm"
+        return formatter.string(from: date)
     }
 }
 

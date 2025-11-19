@@ -87,6 +87,11 @@ public final class APIClient {
             await notifyFailure(error: decodingError, request: preparedRequest)
             throw APIError.decodingFailed(decodingError)
         } catch {
+            // 如果是取消错误（用户主动取消操作），直接抛出，不记录为失败
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                throw error
+            }
+            
             await notifyFailure(error: error, request: preparedRequest)
             if let apiError = error as? APIError {
                 throw apiError

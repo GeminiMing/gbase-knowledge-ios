@@ -68,6 +68,14 @@ final class ProjectsViewModel: ObservableObject {
             
             filterProjects()
         } catch {
+            // 如果是取消错误（用户主动取消下拉刷新），不显示错误弹窗
+            if error is CancellationError {
+                return
+            }
+            // 如果是 URLError.cancelled（Code=-999），也不显示错误弹窗
+            if let urlError = error as? URLError, urlError.code == .cancelled {
+                return
+            }
             errorMessage = error.localizedDescription
         }
     }

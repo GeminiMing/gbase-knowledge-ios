@@ -49,6 +49,11 @@ struct ProjectDetailView: View {
             print("📱 [ProjectDetailView] Set appState.selectedProject to: \(String(describing: appState.selectedProject?.title))")
             await viewModel.loadRecordings()
         }
+        .onDisappear {
+            // 当离开项目详情页时，清除选中的项目
+            print("📱 [ProjectDetailView] View disappeared, clearing selectedProject")
+            appState.selectedProject = nil
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshRecordings"))) { _ in
             print("🔄 [ProjectDetailView] Received refresh notification, reloading recordings")
             Task {
