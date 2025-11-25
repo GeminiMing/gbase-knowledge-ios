@@ -144,6 +144,14 @@ extension WatchConnectivityService: WCSessionDelegate {
         let metadata = file.metadata ?? [:]
 
         print("📥 [iPhone] Processing received file metadata: \(metadata)")
+        print("📥 [iPhone] File URL: \(file.fileURL)")
+        print("📥 [iPhone] File URL path: \(file.fileURL.path)")
+
+        // 检查文件是否实际存在
+        guard FileManager.default.fileExists(atPath: file.fileURL.path) else {
+            print("❌ [iPhone] Received file does not exist at path: \(file.fileURL.path)")
+            return
+        }
 
         // Extract metadata with fallback values
         let fileName = (metadata["fileName"] as? String) ?? file.fileURL.lastPathComponent
@@ -170,6 +178,18 @@ extension WatchConnectivityService: WCSessionDelegate {
         do {
             // Move file to app's documents directory
             let destinationURL = try fileStorageService.saveRecordingFile(from: file.fileURL, fileName: fileName)
+            print("✅ [iPhone] File saved to: \(destinationURL.path)")
+
+            // 验证目标文件是否存在
+            guard FileManager.default.fileExists(atPath: destinationURL.path) else {
+                print("❌ [iPhone] File was not saved successfully to: \(destinationURL.path)")
+                return
+            }
+
+            // 再次验证文件大小
+            let savedAttributes = try FileManager.default.attributesOfItem(atPath: destinationURL.path)
+            let savedFileSize = (savedAttributes[.size] as? Int) ?? 0
+            print("✅ [iPhone] Saved file size: \(savedFileSize) bytes")
 
             // Create Recording entity as draft
             let watchRecordingName = NSLocalizedString(LocalizedStringKey.watchRecordingDefaultName.localized, comment: "")
@@ -180,7 +200,7 @@ extension WatchConnectivityService: WCSessionDelegate {
                 fileName: fileName,
                 customName: "\(watchRecordingName) \(formatDate(Date(timeIntervalSince1970: timestamp)))",
                 localFilePath: destinationURL.path,
-                fileSize: Int64(fileSize),
+                fileSize: Int64(savedFileSize > 0 ? savedFileSize : fileSize),
                 duration: duration,
                 contentHash: nil,  // Will be computed later if needed
                 uploadStatus: .pending,
@@ -193,6 +213,7 @@ extension WatchConnectivityService: WCSessionDelegate {
 
             // Save to local store
             try recordingLocalStore.upsert(recording)
+            print("✅ [iPhone] Recording saved to database: \(recording.id)")
 
             // Update published property and send notification to refresh UI
             await MainActor.run {
@@ -205,10 +226,11 @@ extension WatchConnectivityService: WCSessionDelegate {
             // Send confirmation back to Watch
             sendDraftConfirmation(recordingId: recording.id)
 
-            print("✅ Recording saved as draft: \\(recording.id)")
+            print("✅ Recording saved as draft: \(recording.id)")
 
         } catch {
-            print("❌ Failed to save recording from Watch: \\(error)")
+            print("❌ Failed to save recording from Watch: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
         }
     }
 
