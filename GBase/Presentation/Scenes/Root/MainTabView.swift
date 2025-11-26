@@ -85,6 +85,9 @@ struct MainTabView: View {
         print("🔴 [MainTabView] appState.selectedProject: \(String(describing: appState.selectedProject))")
         print("🔴 [MainTabView] Current tab: \(appState.selectedTab)")
 
+        // 清除之前可能存在的错误消息，确保可以正常开始录音
+        viewModel.errorMessage = nil
+
         // 先显示弹窗，然后在后台创建会议
         showingQuickRecorder = true
         
