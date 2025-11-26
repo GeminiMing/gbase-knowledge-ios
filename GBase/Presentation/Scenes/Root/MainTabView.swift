@@ -8,46 +8,43 @@ struct MainTabView: View {
     @State private var previousTab: AppState.MainTab = .projects
 
     var body: some View {
-        TabView(selection: $appState.selectedTab) {
-            ProjectsView()
-                .tabItem {
-                    Image(systemName: "folder")
-                    Text(LocalizedStringKey.tabProjects.localized)
-                }
-                .tag(AppState.MainTab.projects)
-
-            DraftsView()
-                .tabItem {
-                    Image(systemName: "tray")
-                    Text(LocalizedStringKey.tabDrafts.localized)
-                }
-                .tag(AppState.MainTab.drafts)
-                .onAppear {
-                    if appState.selectedTab == .drafts {
-                        print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
-                        appState.selectedProject = nil
+        ZStack(alignment: .bottom) {
+            TabView(selection: $appState.selectedTab) {
+                ProjectsView()
+                    .tag(AppState.MainTab.projects)
+                    .toolbar(.hidden, for: .tabBar)
+                
+                DraftsView()
+                    .tag(AppState.MainTab.drafts)
+                    .toolbar(.hidden, for: .tabBar)
+                    .onAppear {
+                        if appState.selectedTab == .drafts {
+                            print("📑 [MainTabView] Switched to drafts tab, clearing selectedProject")
+                            appState.selectedProject = nil
+                        }
                     }
-                }
-
-            ProfileView()
-                .tabItem {
-                    Image(systemName: "person.circle")
-                    Text(LocalizedStringKey.tabProfile.localized)
-                }
-                .tag(AppState.MainTab.profile)
-                .onAppear {
-                    if appState.selectedTab == .profile {
-                        print("👤 [MainTabView] Switched to profile tab, clearing selectedProject")
-                        appState.selectedProject = nil
+                
+                ProfileView()
+                    .tag(AppState.MainTab.profile)
+                    .toolbar(.hidden, for: .tabBar)
+                    .onAppear {
+                        if appState.selectedTab == .profile {
+                            print("👤 [MainTabView] Switched to profile tab, clearing selectedProject")
+                            appState.selectedProject = nil
+                        }
                     }
-                }
-
-            Color.clear
-                .tabItem {
-                    Image(systemName: "mic.circle.fill")
-                    Text(LocalizedStringKey.tabRecorder.localized)
-                }
-                .tag(AppState.MainTab.recorder)
+                
+                // 保留 Recorder tab 作为占位，防止逻辑断裂，但不在 UI 上显示
+                Color.clear
+                    .tag(AppState.MainTab.recorder)
+                    .toolbar(.hidden, for: .tabBar)
+            }
+            
+            // 自定义 TabBar
+            CustomTabBar(selectedTab: $appState.selectedTab) {
+                handleRecordButtonTap()
+            }
+            .padding(.bottom, 20) // 底部留出一些空间
         }
         .navigationTitle(appState.authContext?.user.name ?? "")
         .onChange(of: appState.selectedTab) { newTab in
@@ -269,6 +266,19 @@ struct SaveToProjectSheet: View {
     var body: some View {
         NavigationStack {
             Form {
+                // 显示错误消息(如果有)
+                if let errorMessage = viewModel.errorMessage {
+                    Section {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .font(.subheadline)
+                        }
+                    }
+                }
+
                 Section(header: Text(LocalizedStringKey.draftDetailSelectProject.localized)) {
                     if isLoadingProjects {
                         HStack {
@@ -292,12 +302,15 @@ struct SaveToProjectSheet: View {
                         .pickerStyle(.menu)
                     }
                 }
-                
+
                 Section {
                     Button(action: {
+                        // 清除之前的错误消息
+                        viewModel.errorMessage = nil
                         Task {
                             await viewModel.saveDraftToProject()
-                            if !viewModel.showSaveToProjectAlert {
+                            // 只有在成功(没有错误)时才关闭
+                            if viewModel.errorMessage == nil {
                                 dismiss()
                             }
                         }
@@ -383,6 +396,104 @@ extension Color {
             blue:  Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+}
+
+// MARK: - Custom Tab Bar
+
+struct CustomTabBar: View {
+    @Binding var selectedTab: AppState.MainTab
+    var onRecordTap: () -> Void
+    
+    @Namespace private var animationNamespace
+    
+    var body: some View {
+        HStack(spacing: 8) { // 减小中间间隙
+            // 左侧分组：Projects, Drafts, Profile
+            HStack(spacing: 0) {
+                TabBarButton(tab: .projects, selectedTab: $selectedTab, namespace: animationNamespace)
+                    .frame(maxWidth: .infinity)
+                TabBarButton(tab: .drafts, selectedTab: $selectedTab, namespace: animationNamespace)
+                    .frame(maxWidth: .infinity)
+                TabBarButton(tab: .profile, selectedTab: $selectedTab, namespace: animationNamespace)
+                    .frame(maxWidth: .infinity)
+            }
+            .frame(height: 64)
+            .padding(.horizontal, 4)
+            .background(
+                Capsule()
+                    .fill(.regularMaterial)
+                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            )
+            
+            // 右侧录音按钮
+            Button(action: onRecordTap) {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.primary)
+                    .frame(width: 64, height: 64)
+                    .background(.regularMaterial)
+                    .clipShape(Circle())
+                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+}
+
+struct TabBarButton: View {
+    let tab: AppState.MainTab
+    @Binding var selectedTab: AppState.MainTab
+    var namespace: Namespace.ID
+    
+    var iconName: String {
+        switch tab {
+        case .projects: return "folder"
+        case .drafts: return "tray"
+        case .profile: return "person.circle"
+        default: return ""
+        }
+    }
+    
+    var title: String {
+        switch tab {
+        case .projects: return LocalizedStringKey.tabProjects.localized
+        case .drafts: return LocalizedStringKey.tabDrafts.localized
+        case .profile: return LocalizedStringKey.tabProfile.localized
+        default: return ""
+        }
+    }
+    
+    var isSelected: Bool {
+        selectedTab == tab
+    }
+    
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedTab = tab
+            }
+        }) {
+            VStack(spacing: 4) {
+                Image(systemName: isSelected && tab != .projects ? iconName + ".fill" : iconName)
+                    .font(.system(size: 22))
+                Text(title)
+                    .font(.caption2)
+                    .fontWeight(.medium)
+            }
+            .foregroundColor(isSelected ? .blue : .primary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(
+                ZStack {
+                    if isSelected {
+                        Capsule()
+                            .fill(Color.gray.opacity(0.2))
+                            .matchedGeometryEffect(id: "TabBackground", in: namespace)
+                    }
+                }
+            )
+        }
     }
 }
 
