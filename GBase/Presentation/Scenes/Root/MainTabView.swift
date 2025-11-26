@@ -109,11 +109,10 @@ struct MainTabView: View {
 
                     // 检查是否是网络错误
                     if let apiError = error as? APIError, apiError == .networkUnavailable {
-                        // 网络不可用时，显示错误但仍允许作为草稿录音
-                        print("⚠️ [MainTabView] Network unavailable, switching to draft mode")
-                        await MainActor.run {
-                            viewModel.errorMessage = apiError.localizedDescription
-                        }
+                        // 网络不可用时，静默切换到草稿模式，不显示错误提示
+                        // 用户可以正常录音，只是会保存为草稿而不是直接关联到项目
+                        print("⚠️ [MainTabView] Network unavailable, switching to draft mode silently")
+                        // 不再设置 errorMessage，避免与麦克风权限错误混淆
                     }
 
                     // 如果创建会议失败,允许录音,但作为草稿
