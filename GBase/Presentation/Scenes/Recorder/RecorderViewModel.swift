@@ -133,19 +133,50 @@ public final class RecorderViewModel: NSObject, ObservableObject {
             let granted = await container.audioRecorderService.requestPermission()
             guard granted else {
                 errorMessage = LocalizedStringKey.recorderMicrophonePermissionDenied.localized
+                print("❌ [RecorderViewModel] Microphone permission denied")
                 return
             }
 
             let now = Date()
             let meetingId = isDraftMode ? "draft" : preparedMeeting?.id ?? "unknown"
             let fileURL = try container.fileStorageService.makeRecordingURL(timestamp: now, meetingId: meetingId)
+
+            print("🎤 [RecorderViewModel] Starting recording to: \(fileURL.path)")
             try container.audioRecorderService.startRecording(to: fileURL)
 
             self.recordingURL = fileURL
             self.recordingStartAt = now
             resetWaveform()
             status = .recording(duration: 0)
+            print("✅ [RecorderViewModel] Recording started successfully")
+        } catch let error as RecorderError {
+            // 录音器专用错误，已经有本地化描述
+            print("❌ [RecorderViewModel] RecorderError: \(error)")
+            errorMessage = error.localizedDescription
+            status = .idle
+        } catch let error as NSError {
+            // 系统错误，需要特殊处理
+            print("❌ [RecorderViewModel] System error: \(error)")
+            print("   Error domain: \(error.domain)")
+            print("   Error code: \(error.code)")
+            print("   Error description: \(error.localizedDescription)")
+
+            // 检查是否是权限相关的错误
+            if error.domain == NSOSStatusErrorDomain {
+                // 音频会话错误
+                if error.code == Int(kAudioSessionNotActiveError) ||
+                   error.code == Int(kAudioSessionIncompatibleCategory) {
+                    errorMessage = LocalizedStringKey.recorderMicrophonePermissionDenied.localized
+                } else {
+                    errorMessage = error.localizedDescription
+                }
+            } else {
+                errorMessage = error.localizedDescription
+            }
+            status = .idle
         } catch {
+            // 其他错误
+            print("❌ [RecorderViewModel] Unknown error: \(error)")
             errorMessage = error.localizedDescription
             status = .idle
         }
