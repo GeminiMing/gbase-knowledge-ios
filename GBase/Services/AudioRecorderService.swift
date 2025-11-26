@@ -37,30 +37,24 @@ public final class AudioRecorderService: NSObject {
 
     public func requestPermission() async -> Bool {
         // 先检查当前权限状态
-        let currentStatus: AVAudioSession.RecordPermission
         if #available(iOS 17.0, *) {
-            currentStatus = AVAudioApplication.shared.recordPermission
-        } else {
-            currentStatus = AVAudioSession.sharedInstance().recordPermission
-        }
+            let currentStatus = AVAudioApplication.shared.recordPermission
+            print("🎤 [AudioRecorderService] Current permission status: \(currentStatus.rawValue)")
 
-        print("🎤 [AudioRecorderService] Current permission status: \(currentStatus.rawValue)")
+            // 如果已经授权，直接返回
+            if currentStatus == .granted {
+                print("✅ [AudioRecorderService] Permission already granted")
+                return true
+            }
 
-        // 如果已经授权，直接返回
-        if currentStatus == .granted {
-            print("✅ [AudioRecorderService] Permission already granted")
-            return true
-        }
+            // 如果已经拒绝，直接返回
+            if currentStatus == .denied {
+                print("❌ [AudioRecorderService] Permission already denied")
+                return false
+            }
 
-        // 如果已经拒绝，直接返回
-        if currentStatus == .denied {
-            print("❌ [AudioRecorderService] Permission already denied")
-            return false
-        }
-
-        // 状态是 .undetermined，请求权限
-        print("🎤 [AudioRecorderService] Requesting permission...")
-        if #available(iOS 17.0, *) {
+            // 状态是 .undetermined，请求权限
+            print("🎤 [AudioRecorderService] Requesting permission...")
             return await withCheckedContinuation { continuation in
                 AVAudioApplication.requestRecordPermission { granted in
                     print("🎤 [AudioRecorderService] Permission result: \(granted)")
@@ -68,6 +62,23 @@ public final class AudioRecorderService: NSObject {
                 }
             }
         } else {
+            let currentStatus = AVAudioSession.sharedInstance().recordPermission
+            print("🎤 [AudioRecorderService] Current permission status: \(currentStatus.rawValue)")
+
+            // 如果已经授权，直接返回
+            if currentStatus == .granted {
+                print("✅ [AudioRecorderService] Permission already granted")
+                return true
+            }
+
+            // 如果已经拒绝，直接返回
+            if currentStatus == .denied {
+                print("❌ [AudioRecorderService] Permission already denied")
+                return false
+            }
+
+            // 状态是 .undetermined，请求权限
+            print("🎤 [AudioRecorderService] Requesting permission...")
             return await withCheckedContinuation { continuation in
                 AVAudioSession.sharedInstance().requestRecordPermission { granted in
                     print("🎤 [AudioRecorderService] Permission result: \(granted)")
