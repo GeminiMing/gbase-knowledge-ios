@@ -89,7 +89,7 @@
 /* Drafts */
 "drafts.title" = "ローカル録音";
 "drafts.empty_title" = "録音がありません";
-"drafts.empty_message" = "右下の赤いボタンをタップして録音を開始";
+"drafts.empty_message" = "Tap the microphone button in the bottom right to start recording";
 "draft_detail.title" = "下書き詳細";
 "draft_detail.recording_info" = "録音情報";
 "draft_detail.file_name" = "ファイル名";

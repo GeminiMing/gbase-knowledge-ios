@@ -89,7 +89,7 @@
 /* Drafts */
 "drafts.title" = "本地录音";
 "drafts.empty_title" = "暂无录音";
-"drafts.empty_message" = "点击右下角红色按钮开始快速录音";
+"drafts.empty_message" = "点击右下角麦克风按钮开始快速录音";
 "draft_detail.title" = "草稿详情";
 "draft_detail.recording_info" = "录音信息";
 "draft_detail.file_name" = "文件名";
