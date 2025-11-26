@@ -135,8 +135,27 @@ public struct DIContainer {
         let finishRecordingUploadUseCase = DefaultFinishRecordingUploadUseCase(repository: recordingRepository)
 
         unauthorizedRelay.register {
-            guard let session = try? await tokenStore.currentSession() else { return }
-            _ = try await refreshUseCase.execute(refreshToken: session.refreshToken)
+            guard let session = try? await tokenStore.currentSession() else {
+                // No session available, force logout
+                await MainActor.run {
+                    appState.markUnauthenticated()
+                }
+                return
+            }
+
+            do {
+                // Try to refresh token
+                _ = try await refreshUseCase.execute(refreshToken: session.refreshToken)
+            } catch {
+                // Refresh failed (refresh token expired), force logout
+                print("🔑 Refresh token failed: \(error.localizedDescription)")
+                print("👉 Logging out user...")
+                try? await tokenStore.removeSession()
+                await MainActor.run {
+                    appState.markUnauthenticated()
+                }
+                throw error
+            }
         }
 
         let fileStorageService = FileStorageService()
