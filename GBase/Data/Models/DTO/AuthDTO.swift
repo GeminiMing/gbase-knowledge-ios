@@ -80,6 +80,10 @@ struct UserCompanyDTO: Codable {
 
 struct CurrentUserResponseDTO: Decodable {
     let success: Bool
+    let data: CurrentUserDataDTO?
+}
+
+struct CurrentUserDataDTO: Decodable {
     let user: UserDTO
     let userProfile: UserProfileDTO
     let userCompany: UserCompanyDTO

@@ -140,10 +140,10 @@ struct LoginView: View {
                                 .fill(
                                     viewModel.isLoading || viewModel.email.isEmpty || viewModel.password.isEmpty
                                         ? Color.gray.opacity(0.3)
-                                        : Color.black
+                                        : Color.accentColor
                                 )
-                                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                            
+                                .shadow(color: Color.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+
                             HStack {
                                 if viewModel.isLoading {
                                     ProgressView()

@@ -32,22 +32,45 @@ public final class RemoteRecordingRepository: RecordingRepository {
                                              responseType: UploadApplyResponseDTO.self)
 
         guard response.success, let data = response.data else {
-            let message = response.fieldErrors?.first?.message
+            // Get error message and map specific error types to localized messages
+            let errorMessage = response.fieldErrors?.first?.message
                 ?? response.error?.message
-                ?? "申请上传失败"
-            throw APIError.serverError(statusCode: 422, message: message)
+                ?? ""
+            let errorName = response.error?.name ?? ""
+
+            // Map specific error types to user-friendly localized messages
+            let localizedMessage: String
+            if errorName == "FILE_TYPE_NOT_SUPPORT" {
+                localizedMessage = LocalizedStringKey.errorFileTypeNotSupported.localized
+            } else if !errorMessage.isEmpty {
+                // If we have a raw error message, use generic upload failed message
+                localizedMessage = LocalizedStringKey.errorUploadFailed.localized
+            } else {
+                // Fallback to generic upload failed message
+                localizedMessage = LocalizedStringKey.errorUploadFailed.localized
+            }
+
+            throw APIError.serverError(statusCode: 422, message: localizedMessage)
         }
 
         guard let uploadId = Int(data.id) else {
-            throw APIError.serverError(statusCode: 500, message: "无效的上传ID")
+            throw APIError.serverError(statusCode: 500, message: LocalizedStringKey.errorUploadFailed.localized)
+        }
+
+        guard let uploadUri = data.uploadUri else {
+            throw APIError.serverError(statusCode: 500, message: LocalizedStringKey.errorUploadFailed.localized)
+        }
+
+        guard let contentType = data.contentType else {
+            throw APIError.serverError(statusCode: 500, message: LocalizedStringKey.errorUploadFailed.localized)
         }
 
         let uuid = data.uuid ?? data.name ?? UUID().uuidString
 
         return UploadApplication(id: uploadId,
-                                 uploadUri: data.uploadUri,
+                                 uploadUri: uploadUri,
                                  uuid: uuid,
-                                 contentType: data.contentType)
+                                 contentType: contentType)
     }
 
     public func finishUpload(id: Int, contentHash: String) async throws {
@@ -57,7 +80,7 @@ public final class RemoteRecordingRepository: RecordingRepository {
                                              responseType: GenericResponseDTO.self)
 
         guard response.success else {
-            throw APIError.serverError(statusCode: 422, message: response.message ?? "确认上传失败")
+            throw APIError.serverError(statusCode: 422, message: response.message ?? LocalizedStringKey.errorUploadFailed.localized)
         }
     }
 }

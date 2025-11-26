@@ -56,19 +56,22 @@ public final class RemoteAuthRepository: AuthRepository {
     }
 
     public func fetchCurrentUser() async throws -> (User, UserProfile, UserCompany, [String], Bool) {
-        let response = try await client.send(Endpoint(path: "/user/my", method: .get),
+        let endpoint = Endpoint(path: "/user/my",
+                                method: .get,
+                                baseURLOverride: authBaseURL)
+        let response = try await client.send(endpoint,
                                              responseType: CurrentUserResponseDTO.self)
 
-        guard response.success else {
+        guard response.success, let data = response.data else {
             throw APIError.serverError(statusCode: 422, message: "获取用户失败")
         }
 
-        let profile = AuthMapper.map(profile: response.userProfile)
-        let user = AuthMapper.map(user: response.user,
-                                  authorityCodes: response.authorityCodes,
+        let profile = AuthMapper.map(profile: data.userProfile)
+        let user = AuthMapper.map(user: data.user,
+                                  authorityCodes: data.authorityCodes,
                                   language: profile.lang)
-        let company = AuthMapper.map(company: response.userCompany)
-        return (user, profile, company, response.authorityCodes, response.hasPassword)
+        let company = AuthMapper.map(company: data.userCompany)
+        return (user, profile, company, data.authorityCodes, data.hasPassword)
     }
 
     public func logout() async {

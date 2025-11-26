@@ -48,11 +48,43 @@ struct UploadApplyResponseDTO: Decodable {
 
 struct UploadApplyDataDTO: Decodable {
     let id: String
-    let uploadUri: URL
+    let uploadUri: URL?
     let uuid: String?
     let name: String?
-    let contentType: String
+    let contentType: String?
     let meetingId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, uploadUri, uuid, name, contentType, meetingId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Handle id as String or Int (for error responses with id: 0)
+        if let idString = try? container.decode(String.self, forKey: .id) {
+            self.id = idString
+        } else if let idInt = try? container.decode(Int.self, forKey: .id) {
+            self.id = String(idInt)
+        } else {
+            // For error cases, use "0" as fallback
+            self.id = "0"
+        }
+
+        self.uploadUri = try? container.decode(URL.self, forKey: .uploadUri)
+        self.uuid = try? container.decode(String.self, forKey: .uuid)
+        self.name = try? container.decode(String.self, forKey: .name)
+        self.contentType = try? container.decode(String.self, forKey: .contentType)
+
+        // Handle meetingId as String or Int (for error responses with meetingId: 0)
+        if let meetingIdString = try? container.decode(String.self, forKey: .meetingId) {
+            self.meetingId = meetingIdString
+        } else if let meetingIdInt = try? container.decode(Int.self, forKey: .meetingId) {
+            self.meetingId = String(meetingIdInt)
+        } else {
+            self.meetingId = nil
+        }
+    }
 }
 
 struct UploadFinishRequestDTO: Encodable {

@@ -46,8 +46,16 @@ final class LoginViewModel: ObservableObject {
         }
 
         do {
+            print("🔐 [Login] 开始登录...")
+            print("   Email: \(email)")
             let context = try await container.loginUseCase.execute(email: email, password: password)
+            print("✅ [Login] 登录成功")
+            print("   用户: \(context.user.name)")
+            print("   Token: \(context.session.accessToken.prefix(20))...")
+
+            print("🔄 [Login] 更新 AppState...")
             container.appState.update(authContext: context)
+            print("✅ [Login] AppState 更新完成，当前状态: \(container.appState.authState)")
 
             // Save credentials if remember password is enabled
             container.credentialsStore.setShouldRememberCredentials(rememberPassword)
@@ -58,8 +66,13 @@ final class LoginViewModel: ObservableObject {
             }
 
             // 登录成功后初始化公司信息
+            print("🏢 [Login] 初始化公司信息...")
             await container.companyManager.initialize()
+            print("✅ [Login] 公司信息初始化完成")
+
+            print("✅ [Login] 登录流程全部完成")
         } catch {
+            print("❌ [Login] 登录失败: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
         }
 
