@@ -413,20 +413,23 @@ public final class RecorderViewModel: NSObject, ObservableObject {
         guard let container, let recordingId = completedDraftRecordingId, let projectId = saveToProjectSelectedProjectId else {
             return
         }
-        
+
         isBindingToProject = true
         defer { isBindingToProject = false }
-        
+
         do {
+            print("🎤 [Recorder] 开始保存草稿到项目...")
+
             // Fetch the recording
             let recordings = try container.recordingLocalStore.fetch(projectId: nil, status: nil)
             guard let recording = recordings.first(where: { $0.id == recordingId }) else {
                 errorMessage = LocalizedStringKey.draftDetailRecordingNotFound.localized
                 return
             }
-            
+
             // Create a meeting for this recording
             let meetingTitle = recording.customName ?? "\(LocalizedStringKey.quickRecorderDefaultName.localized) - \(formatDate(recording.createdAt))"
+            print("🎤 [Recorder] 创建会议: \(meetingTitle)")
             let meeting = try await container.createMeetingUseCase.execute(
                 projectId: projectId,
                 title: meetingTitle,
@@ -434,32 +437,45 @@ public final class RecorderViewModel: NSObject, ObservableObject {
                 location: nil,
                 description: LocalizedStringKey.draftDetailBindingDescription.localized
             )
-            
+            print("✅ [Recorder] 会议创建成功: \(meeting.id)")
+
             // Bind the draft to the project and meeting
+            print("🎤 [Recorder] 绑定草稿到项目...")
             try container.bindDraftToProjectUseCase.execute(
                 recordingId: recordingId,
                 projectId: projectId,
                 meetingId: meeting.id,
                 customName: recording.customName
             )
-            
+            print("✅ [Recorder] 绑定成功")
+
             // Fetch the updated recording
             let updatedRecordings = try container.recordingLocalStore.fetch(projectId: nil, status: nil)
             guard let updatedRecording = updatedRecordings.first(where: { $0.id == recordingId }) else {
                 errorMessage = LocalizedStringKey.draftDetailRecordingNotFound.localized
                 return
             }
-            
+
             // Upload the recording
+            print("🎤 [Recorder] 开始上传录音...")
             try await upload(recording: updatedRecording)
-            
-            // Clear the alert state
+            print("✅ [Recorder] 上传成功")
+
+            // Clear the alert state - 成功时清除所有状态
             showSaveToProjectAlert = false
             completedDraftRecordingId = nil
             saveToProjectSelectedProjectId = nil
+            errorMessage = nil  // 清除任何之前的错误
             await loadLocalRecordings()
+        } catch let error as URLError where error.code == .cancelled {
+            // 用户主动取消了请求(比如切换页面、进入后台等),这不是错误
+            print("⚠️ [Recorder] 上传被取消(用户操作): \(error.localizedDescription)")
+            // 不设置 errorMessage,因为这不是真正的错误
+            // 保持 alert 状态,让用户可以再次尝试
         } catch {
+            print("❌ [Recorder] 保存到项目失败: \(error)")
             errorMessage = error.localizedDescription
+            // 保持 showSaveToProjectAlert = true,这样用户可以看到错误并重试
         }
     }
     
@@ -467,6 +483,7 @@ public final class RecorderViewModel: NSObject, ObservableObject {
         showSaveToProjectAlert = false
         completedDraftRecordingId = nil
         saveToProjectSelectedProjectId = nil
+        errorMessage = nil  // 清除错误消息
     }
     
     private func formatDate(_ date: Date) -> String {
