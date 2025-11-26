@@ -122,21 +122,46 @@ public final class AudioRecorderService: NSObject {
         ]
 
         // 配置音频会话 - 使用 .default mode 最稳定
-        try session.setCategory(.playAndRecord, mode: .default, options: options)
-        print("✅ 音频会话配置成功 - .playAndRecord category")
+        do {
+            try session.setCategory(.playAndRecord, mode: .default, options: options)
+            print("✅ 音频会话配置成功 - .playAndRecord category")
+        } catch let error as NSError {
+            print("❌ 音频会话配置失败: \(error.localizedDescription)")
+            print("❌ 错误码: \(error.code), 域: \(error.domain)")
+
+            // 检查是否是因为音频会话被占用
+            if error.code == AVAudioSession.ErrorCode.isBusy.rawValue {
+                throw RecorderError.sessionBusy
+            }
+            throw error
+        }
 
         // 激活会话
         do {
             try session.setActive(true, options: [.notifyOthersOnDeactivation])
             print("✅ 音频会话激活成功 - 支持后台录音")
-        } catch {
+        } catch let error as NSError {
             print("⚠️ 会话激活失败: \(error.localizedDescription)")
+            print("⚠️ 错误码: \(error.code), 域: \(error.domain)")
+
+            // 检查是否是因为音频会话被占用
+            if error.code == AVAudioSession.ErrorCode.isBusy.rawValue {
+                throw RecorderError.sessionBusy
+            }
+
             // 尝试先停用再激活
             do {
                 try session.setActive(false, options: [])
                 try session.setActive(true, options: [.notifyOthersOnDeactivation])
                 print("✅ 音频会话强制激活成功")
-            } catch {
+            } catch let retryError as NSError {
+                print("❌ 强制激活失败: \(retryError.localizedDescription)")
+
+                if retryError.code == AVAudioSession.ErrorCode.isBusy.rawValue {
+                    throw RecorderError.sessionBusy
+                }
+
+                // 最后尝试无选项激活
                 try session.setActive(true)
                 print("⚠️ 音频会话激活（无选项）")
             }
@@ -450,6 +475,20 @@ extension AudioRecorderService: AVAudioRecorderDelegate {
 
 public enum RecorderError: Error {
     case failedToStart
+    case sessionBusy
     case unknown
+}
+
+extension RecorderError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .failedToStart:
+            return LocalizedStringKey.recorderFailedToStart.localized
+        case .sessionBusy:
+            return LocalizedStringKey.recorderSessionBusy.localized
+        case .unknown:
+            return LocalizedStringKey.recorderUnknownError.localized
+        }
+    }
 }
 

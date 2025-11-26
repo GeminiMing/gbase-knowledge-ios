@@ -139,6 +139,8 @@ enum LocalizedStringKey {
     static let recorderUnknownError = "recorder.unknown_error"
     static let recorderSaveToProject = "recorder.save_to_project"
     static let recorderSaveLater = "recorder.save_later"
+    static let recorderFailedToStart = "recorder.failed_to_start"
+    static let recorderSessionBusy = "recorder.session_busy"
     
     // Upload Status
     static let uploadStatusPending = "upload_status.pending"
@@ -189,5 +191,7 @@ enum LocalizedStringKey {
     static let errorServerInternalError = "error.server_internal_error"
     static let errorServerError = "error.server_error"
     static let errorServerErrorDefault = "error.server_error_default"
+    static let errorUploadFailed = "error.upload_failed"
+    static let errorFileTypeNotSupported = "error.file_type_not_supported"
 }
 

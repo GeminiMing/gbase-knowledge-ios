@@ -10,6 +10,8 @@
 "error.server_internal_error" = "サーバー内部エラー、後でもう一度お試しください";
 "error.server_error" = "サーバーエラー、後でもう一度お試しください";
 "error.server_error_default" = "サーバーエラー";
+"error.upload_failed" = "アップロード失敗、後でもう一度お試しください";
+"error.file_type_not_supported" = "ファイル形式がサポートされていません";
 
 /* Login */
 "login.title" = "サインイン";
@@ -69,6 +71,8 @@
 "recorder.unknown_error" = "不明なエラー";
 "recorder.save_to_project" = "プロジェクトに保存";
 "recorder.save_later" = "後で";
+"recorder.failed_to_start" = "録音を開始できません";
+"recorder.session_busy" = "マイクが他のアプリで使用されています。他のアプリを閉じてから再試行してください";
 
 /* Upload Status */
 "upload_status.pending" = "待機中";

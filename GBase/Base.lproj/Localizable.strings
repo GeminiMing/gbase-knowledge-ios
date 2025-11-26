@@ -10,6 +10,8 @@
 "error.server_internal_error" = "Internal server error, please try again later";
 "error.server_error" = "Server error, please try again later";
 "error.server_error_default" = "Server error";
+"error.upload_failed" = "Upload failed, please try again later";
+"error.file_type_not_supported" = "File type not supported";
 
 /* Login */
 "login.title" = "Sign In";
@@ -69,6 +71,8 @@
 "recorder.unknown_error" = "Unknown error";
 "recorder.save_to_project" = "Save to Project";
 "recorder.save_later" = "Later";
+"recorder.failed_to_start" = "Failed to start recording";
+"recorder.session_busy" = "Microphone is being used by another app. Please close other apps using the microphone and try again";
 
 /* Upload Status */
 "upload_status.pending" = "Pending";

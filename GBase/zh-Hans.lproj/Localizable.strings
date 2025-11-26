@@ -10,6 +10,8 @@
 "error.server_internal_error" = "服务器内部错误，请稍后重试";
 "error.server_error" = "服务器错误，请稍后重试";
 "error.server_error_default" = "服务器错误";
+"error.upload_failed" = "上传失败，请稍后重试";
+"error.file_type_not_supported" = "文件类型不支持";
 
 /* Login */
 "login.title" = "登录";
@@ -69,6 +71,8 @@
 "recorder.unknown_error" = "未知错误";
 "recorder.save_to_project" = "保存到项目";
 "recorder.save_later" = "稍后";
+"recorder.failed_to_start" = "无法启动录音";
+"recorder.session_busy" = "麦克风被其他应用占用，请关闭其他正在使用麦克风的应用后重试";
 
 /* Upload Status */
 "upload_status.pending" = "待上传";
