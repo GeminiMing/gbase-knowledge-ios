@@ -8,8 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		185A42A32EBF459200D4DE2F /* GBase Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 185A42992EBF459000D4DE2F /* GBase Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		18D5F3AB2EB45EE3006E2B5D /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 18D5F3AA2EB45EE3006E2B5D /* RealmSwift */; };
-		18D5F3AC2EB45EE3006E2B5D /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 18D5F3AA2EB45EE3006E2B5D /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		D594B1F02EE4AB43000757C1 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D56D2AEF2EE4A3B10026D09A /* RealmSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,7 +39,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				18D5F3AC2EB45EE3006E2B5D /* RealmSwift in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -90,7 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18D5F3AB2EB45EE3006E2B5D /* RealmSwift in Frameworks */,
+				D594B1F02EE4AB43000757C1 /* RealmSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -168,7 +166,7 @@
 			);
 			name = GBase;
 			packageProductDependencies = (
-				18D5F3AA2EB45EE3006E2B5D /* RealmSwift */,
+				D56D2AEF2EE4A3B10026D09A /* RealmSwift */,
 			);
 			productName = GBaseKnowledgeApp;
 			productReference = 18D5F30F2EB436A1006E2B5D /* GBase.app */;
@@ -204,7 +202,7 @@
 			mainGroup = 18D5F3062EB436A1006E2B5D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				18D5F3A82EB44A95006E2B5D /* XCLocalSwiftPackageReference "../realm-swift-master" */,
+				D56D2AEE2EE4A3B10026D09A /* XCRemoteSwiftPackageReference "realm-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 18D5F3102EB436A1006E2B5D /* Products */;
@@ -290,7 +288,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -325,7 +323,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 26.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -577,17 +575,21 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		18D5F3A82EB44A95006E2B5D /* XCLocalSwiftPackageReference "../realm-swift-master" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "../realm-swift-master";
+/* Begin XCRemoteSwiftPackageReference section */
+		D56D2AEE2EE4A3B10026D09A /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.0.0;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		18D5F3AA2EB45EE3006E2B5D /* RealmSwift */ = {
+		D56D2AEF2EE4A3B10026D09A /* RealmSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 18D5F3A82EB44A95006E2B5D /* XCLocalSwiftPackageReference "../realm-swift-master" */;
+			package = D56D2AEE2EE4A3B10026D09A /* XCRemoteSwiftPackageReference "realm-swift" */;
 			productName = RealmSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
