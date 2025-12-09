@@ -1,7 +1,0 @@
-/*
-  InfoPlist.strings
-  GBase Watch App (Japanese)
-*/
-
-/* Microphone Permission */
-"NSMicrophoneUsageDescription" = "会議の音声を録音するには、マイクへのアクセスが必要です";

@@ -53,6 +53,10 @@
 "project_role.contributor" = "Contributor";
 "project_role.sharee" = "Sharee";
 
+/* Project Detail */
+"project_detail.no_recordings" = "No Recordings";
+"project_detail.start_recording_hint" = "Use the recording button at the bottom to start recording";
+
 /* Recorder */
 "recorder.back" = "Back";
 "recorder.meeting_id" = "Meeting ID: ";

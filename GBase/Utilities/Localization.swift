@@ -121,6 +121,10 @@ enum LocalizedStringKey {
     static let projectRoleContributor = "project_role.contributor"
     static let projectRoleSharee = "project_role.sharee"
     
+    // Project Detail
+    static let projectDetailNoRecordings = "project_detail.no_recordings"
+    static let projectDetailStartRecordingHint = "project_detail.start_recording_hint"
+    
     // Recorder
     static let recorderBack = "recorder.back"
     static let recorderMeetingId = "recorder.meeting_id"

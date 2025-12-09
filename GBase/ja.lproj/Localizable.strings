@@ -53,6 +53,10 @@
 "project_role.contributor" = "貢献者";
 "project_role.sharee" = "共有者";
 
+/* Project Detail */
+"project_detail.no_recordings" = "録音がありません";
+"project_detail.start_recording_hint" = "下部の録音ボタンを使用して録音を開始";
+
 /* Recorder */
 "recorder.back" = "戻る";
 "recorder.meeting_id" = "会議ID：";

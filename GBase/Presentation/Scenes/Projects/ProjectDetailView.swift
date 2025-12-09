@@ -110,15 +110,15 @@ struct ProjectDetailView: View {
 
                 // 显示上传状态
                 if recording.uploadStatus == .completed {
-                    Label("已上传", systemImage: "checkmark.circle.fill")
+                    Label(LocalizedStringKey.uploadStatusCompleted.localized, systemImage: "checkmark.circle.fill")
                         .font(.caption)
                         .foregroundColor(.green)
                 } else if recording.uploadStatus == .uploading {
-                    Label("上传中", systemImage: "arrow.up.circle")
+                    Label(LocalizedStringKey.uploadStatusUploading.localized, systemImage: "arrow.up.circle")
                         .font(.caption)
                         .foregroundColor(.orange)
                 } else if recording.uploadStatus == .failed {
-                    Label("失败", systemImage: "exclamationmark.circle")
+                    Label(LocalizedStringKey.uploadStatusFailed.localized, systemImage: "exclamationmark.circle")
                         .font(.caption)
                         .foregroundColor(.red)
                 }
@@ -138,7 +138,7 @@ struct ProjectDetailView: View {
                                     ProgressView()
                                         .progressViewStyle(.circular)
                                         .scaleEffect(0.8)
-                                    Text("上传中 \(Int(viewModel.uploadProgress))%")
+                                    Text(String(format: "%@ %d%%", LocalizedStringKey.uploadStatusUploading.localized, Int(viewModel.uploadProgress)))
                                         .font(.subheadline)
                                         .foregroundColor(.white)
                                 }
@@ -197,11 +197,11 @@ struct ProjectDetailView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.gray)
 
-            Text("暂无录音")
+            Text(LocalizedStringKey.projectDetailNoRecordings.localized)
                 .font(.headline)
                 .foregroundColor(.secondary)
 
-            Text("使用底部的录音按钮开始录制")
+            Text(LocalizedStringKey.projectDetailStartRecordingHint.localized)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

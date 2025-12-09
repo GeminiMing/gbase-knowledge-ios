@@ -1,7 +1,0 @@
-/*
-  InfoPlist.strings
-  GBase Watch App (Simplified Chinese)
-*/
-
-/* Microphone Permission */
-"NSMicrophoneUsageDescription" = "需要访问麦克风以录制会议音频";

@@ -8,25 +8,25 @@ public struct APIConfiguration: Sendable {
         public var baseURL: URL {
             switch self {
             case .development:
-                return URL(string: "https://core-api-dev.gbase.ai")!
+                return URL(string: "https://hub.gbase.ai/core-api")!
             case .production:
-                return URL(string: "https://core-api.gbase.ai")!
+                return URL(string: "https://hub.gbase.ai/core-api")!
             }
         }
 
         public var authBaseURL: URL {
             switch self {
             case .development:
-                return URL(string: "https://ogs-api-dev.gbase.ai")!
+                return URL(string: "https://hub.gbase.ai/ogs-api")!
             case .production:
-                return URL(string: "https://ogs-api.gbase.ai")!
+                return URL(string: "https://hub.gbase.ai/ogs-api")!
             }
         }
 
         public var hubBaseURL: URL {
             switch self {
             case .development:
-                return URL(string: "https://hub-dev.gbase.ai")!
+                return URL(string: "https://hub.gbase.ai")!
             case .production:
                 return URL(string: "https://hub.gbase.ai")!
             }
