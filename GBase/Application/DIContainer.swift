@@ -170,7 +170,9 @@ public struct DIContainer {
         let audioPlayerService = AudioPlayerService()
         let recordingUploadService = RecordingUploadService(applyUseCase: applyRecordingUploadUseCase,
                                                             finishUseCase: finishRecordingUploadUseCase,
-                                                            fileStorageService: fileStorageService)
+                                                            fileStorageService: fileStorageService,
+                                                            config: config,
+                                                            tokenProvider: tokenProvider)
 
         // Create CompanyManager on main actor
         let companyAPIService = CompanyAPIService(baseURL: config.environment.authBaseURL.absoluteString, tokenStore: tokenStore)

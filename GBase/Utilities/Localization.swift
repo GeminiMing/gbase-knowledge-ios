@@ -192,6 +192,15 @@ enum LocalizedStringKey {
     static let waveformAccessibilityLabel = "waveform.accessibility_label"
     
     // Error Messages
+    static let errorInvalidURL = "error.invalid_url"
+    static let errorDecodingFailed = "error.decoding_failed"
+    static let errorEncodingFailed = "error.encoding_failed"
+    static let errorUnauthorized = "error.unauthorized"
+    static let errorForbidden = "error.forbidden"
+    static let errorIpBlocked = "error.ip_blocked"
+    static let errorNotFound = "error.not_found"
+    static let errorNetworkUnavailable = "error.network_unavailable"
+    static let errorTimeout = "error.timeout"
     static let errorServerInternalError = "error.server_internal_error"
     static let errorServerError = "error.server_error"
     static let errorServerErrorDefault = "error.server_error_default"

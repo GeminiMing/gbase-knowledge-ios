@@ -7,6 +7,15 @@
 "common.back" = "戻る";
 
 /* Error Messages */
+"error.invalid_url" = "無効なリクエストURL";
+"error.decoding_failed" = "データ解析失敗: %@";
+"error.encoding_failed" = "パラメータエンコード失敗: %@";
+"error.unauthorized" = "未承認、再度ログインしてください";
+"error.forbidden" = "権限が不足しています";
+"error.ip_blocked" = "IPアドレスがブロックされました";
+"error.not_found" = "リソースが見つかりません";
+"error.network_unavailable" = "ネットワークが利用できません";
+"error.timeout" = "リクエストタイムアウト";
 "error.server_internal_error" = "サーバー内部エラー、後でもう一度お試しください";
 "error.server_error" = "サーバーエラー、後でもう一度お試しください";
 "error.server_error_default" = "サーバーエラー";

@@ -131,6 +131,11 @@ public final class APIClient {
         case 401:
             throw APIError.unauthorized
         case 403:
+            // Check if it's an IP blocked error
+            if let errorInfo = extractErrorFromResponse(data: data),
+               errorInfo.name == "IP_BLOCKED" {
+                throw APIError.ipBlocked
+            }
             throw APIError.forbidden
         case 404:
             throw APIError.notFound
@@ -140,6 +145,16 @@ public final class APIClient {
             let message = extractErrorMessage(from: rawMessage, contentType: httpResponse.value(forHTTPHeaderField: "Content-Type"))
             throw APIError.serverError(statusCode: httpResponse.statusCode, message: message)
         }
+    }
+    
+    private func extractErrorFromResponse(data: Data) -> (name: String, message: String?)? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let error = json["error"] as? [String: Any],
+              let errorName = error["name"] as? String else {
+            return nil
+        }
+        let errorMessage = error["message"] as? String
+        return (name: errorName, message: errorMessage)
     }
     
     private func extractErrorMessage(from rawMessage: String, contentType: String?) -> String {

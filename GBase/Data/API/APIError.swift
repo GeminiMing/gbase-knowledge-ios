@@ -6,6 +6,7 @@ public enum APIError: Error, LocalizedError, Equatable {
     case encodingFailed(Error)
     case unauthorized
     case forbidden
+    case ipBlocked
     case notFound
     case serverError(statusCode: Int, message: String)
     case invalidCredentials
@@ -16,17 +17,19 @@ public enum APIError: Error, LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "无效的请求地址"
+            return LocalizedStringKey.errorInvalidURL.localized
         case .decodingFailed(let error):
-            return "数据解析失败: \(error.localizedDescription)"
+            return String(format: LocalizedStringKey.errorDecodingFailed.localized, error.localizedDescription)
         case .encodingFailed(let error):
-            return "参数编码失败: \(error.localizedDescription)"
+            return String(format: LocalizedStringKey.errorEncodingFailed.localized, error.localizedDescription)
         case .unauthorized:
-            return "未授权,请重新登录"
+            return LocalizedStringKey.errorUnauthorized.localized
         case .forbidden:
-            return "权限不足"
+            return LocalizedStringKey.errorForbidden.localized
+        case .ipBlocked:
+            return LocalizedStringKey.errorIpBlocked.localized
         case .notFound:
-            return "资源不存在"
+            return LocalizedStringKey.errorNotFound.localized
         case .serverError(let statusCode, let message):
             // 如果消息已经是友好的错误消息（不包含HTML标签），直接返回
             if !message.contains("<") && !message.contains("<!DOCTYPE") {
@@ -41,9 +44,9 @@ public enum APIError: Error, LocalizedError, Equatable {
         case .invalidCredentials:
             return LocalizedStringKey.loginInvalidCredentials.localized
         case .networkUnavailable:
-            return "网络不可用"
+            return LocalizedStringKey.errorNetworkUnavailable.localized
         case .timeout:
-            return "请求超时"
+            return LocalizedStringKey.errorTimeout.localized
         case .unknown(let error):
             return error.localizedDescription
         }
@@ -55,6 +58,7 @@ public enum APIError: Error, LocalizedError, Equatable {
         case (.invalidURL, .invalidURL),
              (.unauthorized, .unauthorized),
              (.forbidden, .forbidden),
+             (.ipBlocked, .ipBlocked),
              (.notFound, .notFound),
              (.networkUnavailable, .networkUnavailable),
              (.timeout, .timeout):

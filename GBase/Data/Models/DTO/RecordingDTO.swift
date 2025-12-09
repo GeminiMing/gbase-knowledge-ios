@@ -97,3 +97,46 @@ struct GenericResponseDTO: Decodable {
     let message: String?
 }
 
+struct FileUploadRequestDTO {
+    let meetingId: Int
+    let name: String
+    let `extension`: String
+    let file: Data
+    let fileType: String
+    let fromType: String
+    let fromId: String?
+    let actualStartAt: String
+    let actualEndAt: String
+}
+
+struct FileUploadResponseDTO: Decodable {
+    let success: Bool
+    let fieldErrors: [APIFieldErrorDTO]?
+    let data: FileUploadDataDTO?
+    let error: APIResponseErrorDTO?
+}
+
+struct FileUploadDataDTO: Decodable {
+    let id: String?
+    let message: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, message
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Handle id as String or Int
+        if let idString = try? container.decode(String.self, forKey: .id) {
+            self.id = idString
+        } else if let idInt = try? container.decode(Int.self, forKey: .id) {
+            self.id = String(idInt)
+        } else {
+            self.id = nil
+        }
+        
+        self.message = try? container.decode(String.self, forKey: .message)
+    }
+}
+

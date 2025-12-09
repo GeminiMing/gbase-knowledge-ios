@@ -7,6 +7,15 @@
 "common.back" = "Back";
 
 /* Error Messages */
+"error.invalid_url" = "Invalid request URL";
+"error.decoding_failed" = "Data parsing failed: %@";
+"error.encoding_failed" = "Parameter encoding failed: %@";
+"error.unauthorized" = "Unauthorized, please login again";
+"error.forbidden" = "Insufficient permissions";
+"error.ip_blocked" = "IP address blocked";
+"error.not_found" = "Resource not found";
+"error.network_unavailable" = "Network unavailable";
+"error.timeout" = "Request timeout";
 "error.server_internal_error" = "Internal server error, please try again later";
 "error.server_error" = "Server error, please try again later";
 "error.server_error_default" = "Server error";

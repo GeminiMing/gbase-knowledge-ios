@@ -7,6 +7,15 @@
 "common.back" = "返回";
 
 /* Error Messages */
+"error.invalid_url" = "无效的请求地址";
+"error.decoding_failed" = "数据解析失败: %@";
+"error.encoding_failed" = "参数编码失败: %@";
+"error.unauthorized" = "未授权，请重新登录";
+"error.forbidden" = "权限不足";
+"error.ip_blocked" = "IP地址被阻止";
+"error.not_found" = "资源不存在";
+"error.network_unavailable" = "网络不可用";
+"error.timeout" = "请求超时";
 "error.server_internal_error" = "服务器内部错误，请稍后重试";
 "error.server_error" = "服务器错误，请稍后重试";
 "error.server_error_default" = "服务器错误";
