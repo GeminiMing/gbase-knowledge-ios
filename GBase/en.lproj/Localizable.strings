@@ -13,6 +13,12 @@
 "error.unauthorized" = "Unauthorized, please login again";
 "error.forbidden" = "Insufficient permissions";
 "error.ip_blocked" = "IP address blocked";
+
+/* Delete Confirmation */
+"delete_recording.title" = "Delete Recording";
+"delete_recording.message" = "Are you sure you want to delete this recording? This action cannot be undone.";
+"delete_recording.confirm" = "Delete";
+"delete_recording.cancel" = "Cancel";
 "error.not_found" = "Resource not found";
 "error.network_unavailable" = "Network unavailable";
 "error.timeout" = "Request timeout";

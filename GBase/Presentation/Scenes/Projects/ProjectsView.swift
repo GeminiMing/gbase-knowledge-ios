@@ -34,9 +34,7 @@ struct ProjectsView: View {
                                     .buttonStyle(.plain)
                                     .onTapGesture {
                                         // 设置选中的项目
-                                        print("📋 [ProjectsView] Setting selectedProject to: \(project.title)")
                                         appState.selectedProject = project
-                                        print("📋 [ProjectsView] appState.selectedProject is now: \(String(describing: appState.selectedProject?.title))")
                                     }
                                     .onAppear {
                                         if index == viewModel.filteredProjects.count - 1 {
@@ -76,7 +74,6 @@ struct ProjectsView: View {
             viewModel.configure(container: container)
             Task { await viewModel.refresh() }
             // 回到项目列表时清除选中的项目
-            print("📋 [ProjectsView] View appeared, clearing selectedProject")
             appState.selectedProject = nil
         }
     }

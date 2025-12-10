@@ -88,10 +88,7 @@ struct MainTabView: View {
         // 清除之前可能存在的错误消息，确保可以正常开始录音
         viewModel.errorMessage = nil
 
-        // 先显示弹窗，然后在后台创建会议
-        showingQuickRecorder = true
-        
-        // 如果有选中的项目,为该项目创建会议并绑定（在后台异步执行）
+        // 如果有选中的项目,先创建会议，等会议创建完成后再显示弹窗
         if let project = appState.selectedProject {
             print("✅ [MainTabView] Project found: \(project.title)")
             Task {
@@ -106,6 +103,8 @@ struct MainTabView: View {
                     await MainActor.run {
                         recordingMeeting = meeting
                         viewModel.prepare(for: project, meeting: meeting)
+                        // 会议创建完成后再显示弹窗
+                        showingQuickRecorder = true
                     }
                 } catch {
                     print("❌ 创建会议失败: \(error)")
@@ -122,14 +121,17 @@ struct MainTabView: View {
                     await MainActor.run {
                         recordingMeeting = nil
                         viewModel.prepareForQuickRecording()
+                        // 即使创建失败也显示弹窗，允许草稿录音
+                        showingQuickRecorder = true
                     }
                 }
             }
         } else {
-            // 没有选中项目,作为草稿录音
+            // 没有选中项目,作为草稿录音，直接显示弹窗
             print("⚠️ [MainTabView] No project selected, using draft mode")
             recordingMeeting = nil
             viewModel.prepareForQuickRecording()
+            showingQuickRecorder = true
         }
     }
 }

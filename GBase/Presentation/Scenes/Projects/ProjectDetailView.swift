@@ -44,18 +44,15 @@ struct ProjectDetailView: View {
         }
         .task {
             viewModel.configure(container: container)
-            print("📱 [ProjectDetailView] View appeared for project: \(project.title)")
             appState.selectedProject = project
-            print("📱 [ProjectDetailView] Set appState.selectedProject to: \(String(describing: appState.selectedProject?.title))")
             await viewModel.loadRecordings()
         }
         .onDisappear {
-            // 当离开项目详情页时，清除选中的项目
-            print("📱 [ProjectDetailView] View disappeared, clearing selectedProject")
+            // 当离开项目详情页时，停止音频播放并清除选中的项目
+            viewModel.cleanup()
             appState.selectedProject = nil
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshRecordings"))) { _ in
-            print("🔄 [ProjectDetailView] Received refresh notification, reloading recordings")
             Task {
                 await viewModel.loadRecordings()
             }
@@ -67,6 +64,40 @@ struct ProjectDetailView: View {
             Alert(title: Text(LocalizedStringKey.commonError.localized),
                   message: Text(viewModel.errorMessage ?? ""),
                   dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
+        }
+        .alert(item: Binding<Recording?>(
+            get: { viewModel.recordingToDelete },
+            set: { newValue in
+                // 只有在取消时才清空，确认删除时不清空（由 deleteRecording 方法清空）
+                if newValue == nil && viewModel.recordingToDelete != nil {
+                    // 检查是否是取消操作（通过检查 shouldDeleteRecording 标志）
+                    // 如果是确认删除，shouldDeleteRecording 会被设置为 true
+                    if !viewModel.shouldDeleteRecording {
+                        viewModel.recordingToDelete = nil
+                    }
+                } else {
+                    viewModel.recordingToDelete = newValue
+                }
+            }
+        )) { recording in
+            Alert(
+                title: Text(LocalizedStringKey.deleteRecordingTitle.localized),
+                message: Text(LocalizedStringKey.deleteRecordingMessage.localized),
+                primaryButton: .destructive(Text(LocalizedStringKey.deleteRecordingConfirm.localized)) {
+                    // 先保存要删除的录音，因为 alert 关闭时会清空 recordingToDelete
+                    let recordingToDelete = recording
+                    // 设置标志，防止 alert 关闭时清空
+                    viewModel.shouldDeleteRecording = true
+                    // 直接执行删除，不等待 alert 关闭
+                    Task { @MainActor in
+                        await viewModel.deleteRecording(recording: recordingToDelete)
+                    }
+                },
+                secondaryButton: .cancel(Text(LocalizedStringKey.deleteRecordingCancel.localized)) {
+                    viewModel.shouldDeleteRecording = false
+                    viewModel.recordingToDelete = nil
+                }
+            )
         }
     }
 
@@ -156,9 +187,7 @@ struct ProjectDetailView: View {
                     .disabled(viewModel.uploadingRecordingId == recording.id)
 
                     Button(action: {
-                        Task {
-                            await viewModel.deleteRecording(recording)
-                        }
+                        viewModel.confirmDeleteRecording(recording)
                     }) {
                         Image(systemName: "trash")
                             .font(.subheadline)
@@ -172,9 +201,7 @@ struct ProjectDetailView: View {
                 HStack {
                     Spacer()
                     Button(action: {
-                        Task {
-                            await viewModel.deleteRecording(recording)
-                        }
+                        viewModel.confirmDeleteRecording(recording)
                     }) {
                         Image(systemName: "trash")
                             .font(.subheadline)

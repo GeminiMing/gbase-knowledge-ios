@@ -73,7 +73,13 @@ extension WatchConnectivityService: WCSessionDelegate {
         }
 
         if let error = error {
-            print("❌ [iPhone] WCSession activation failed: \(error.localizedDescription)")
+            // 忽略 "counterpart app not installed" 错误，这是正常的（如果没有配对 Watch 或没有安装 Watch 应用）
+            let errorDescription = error.localizedDescription
+            if errorDescription.contains("counterpart app not installed") {
+                // 这是正常情况，不需要记录为错误
+                return
+            }
+            print("❌ [iPhone] WCSession activation failed: \(errorDescription)")
             print("❌ [iPhone] Error details: \(error)")
             print("📱 [iPhone] Activation state: \(activationState.rawValue)")
             print("📱 [iPhone] Session info - isPaired: \(session.isPaired), isWatchAppInstalled: \(session.isWatchAppInstalled), isReachable: \(session.isReachable)")

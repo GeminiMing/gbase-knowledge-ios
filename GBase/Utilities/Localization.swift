@@ -206,5 +206,11 @@ enum LocalizedStringKey {
     static let errorServerErrorDefault = "error.server_error_default"
     static let errorUploadFailed = "error.upload_failed"
     static let errorFileTypeNotSupported = "error.file_type_not_supported"
+    
+    // Delete Confirmation
+    static let deleteRecordingTitle = "delete_recording.title"
+    static let deleteRecordingMessage = "delete_recording.message"
+    static let deleteRecordingConfirm = "delete_recording.confirm"
+    static let deleteRecordingCancel = "delete_recording.cancel"
 }
 

@@ -13,6 +13,12 @@
 "error.unauthorized" = "未承認、再度ログインしてください";
 "error.forbidden" = "権限が不足しています";
 "error.ip_blocked" = "IPアドレスがブロックされました";
+
+/* Delete Confirmation */
+"delete_recording.title" = "録音を削除";
+"delete_recording.message" = "この録音を削除してもよろしいですか？削除後は復元できません。";
+"delete_recording.confirm" = "削除";
+"delete_recording.cancel" = "キャンセル";
 "error.not_found" = "リソースが見つかりません";
 "error.network_unavailable" = "ネットワークが利用できません";
 "error.timeout" = "リクエストタイムアウト";

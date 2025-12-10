@@ -125,8 +125,30 @@ public final class RecorderViewModel: NSObject, ObservableObject {
 
         // Allow recording without prepared meeting if in draft mode
         if !isDraftMode && preparedMeeting == nil {
-            errorMessage = LocalizedStringKey.recorderMeetingNotPrepared.localized
-            return
+            // 如果有选中的项目但会议还没创建，尝试创建会议
+            if let projectId = selectedProjectId, let projectTitle = selectedProjectTitle {
+                do {
+                    let meeting = try await container.createMeetingUseCase.execute(
+                        projectId: projectId,
+                        title: projectTitle.isEmpty ? LocalizedStringKey.quickRecorderDefaultName.localized : projectTitle,
+                        meetingTime: Date(),
+                        location: nil,
+                        description: nil
+                    )
+                    // 更新 preparedMeeting
+                    preparedMeeting = meeting
+                    meetingTitle = meeting.title
+                } catch {
+                    Logger.error("❌ [RecorderViewModel] 创建会议失败: \(error.localizedDescription)")
+                    // 如果创建失败，切换到草稿模式
+                    isDraftMode = true
+                    preparedMeeting = nil
+                }
+            } else {
+                // 没有选中项目，显示错误
+                errorMessage = LocalizedStringKey.recorderMeetingNotPrepared.localized
+                return
+            }
         }
 
         do {

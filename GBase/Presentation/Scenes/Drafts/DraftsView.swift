@@ -42,7 +42,6 @@ struct DraftsView: View {
                 await viewModel.loadDrafts()
             }
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshRecordings"))) { _ in
-                print("🔄 [DraftsView] Received refresh notification, reloading drafts")
                 Task {
                     await viewModel.loadDrafts()
                 }
@@ -54,6 +53,23 @@ struct DraftsView: View {
                 Alert(title: Text(LocalizedStringKey.commonError.localized),
                       message: Text(viewModel.errorMessage ?? ""),
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
+            }
+            .alert(item: Binding<Recording?>(
+                get: { viewModel.draftToDelete },
+                set: { viewModel.draftToDelete = $0 }
+            )) { recording in
+                Alert(
+                    title: Text(LocalizedStringKey.deleteRecordingTitle.localized),
+                    message: Text(LocalizedStringKey.deleteRecordingMessage.localized),
+                    primaryButton: .destructive(Text(LocalizedStringKey.deleteRecordingConfirm.localized)) {
+                        Task { @MainActor in
+                            await viewModel.deleteDraft()
+                        }
+                    },
+                    secondaryButton: .cancel(Text(LocalizedStringKey.deleteRecordingCancel.localized)) {
+                        viewModel.draftToDelete = nil
+                    }
+                )
             }
         }
     }
@@ -108,9 +124,7 @@ struct DraftsView: View {
                 .buttonStyle(.plain)
 
                 Button(action: {
-                    Task {
-                        await viewModel.deleteDraft(draft)
-                    }
+                    viewModel.confirmDeleteDraft(draft)
                 }) {
                     Image(systemName: "trash")
                         .font(.subheadline)

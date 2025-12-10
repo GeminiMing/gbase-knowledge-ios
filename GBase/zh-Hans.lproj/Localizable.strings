@@ -13,6 +13,12 @@
 "error.unauthorized" = "未授权，请重新登录";
 "error.forbidden" = "权限不足";
 "error.ip_blocked" = "IP地址被阻止";
+
+/* Delete Confirmation */
+"delete_recording.title" = "删除录音";
+"delete_recording.message" = "确定要删除这条录音吗？删除后将无法恢复。";
+"delete_recording.confirm" = "删除";
+"delete_recording.cancel" = "取消";
 "error.not_found" = "资源不存在";
 "error.network_unavailable" = "网络不可用";
 "error.timeout" = "请求超时";

@@ -80,11 +80,18 @@ public final class DefaultDeleteDraftUseCase: DeleteDraftUseCase {
     public func execute(recordingId: String) throws {
         // Fetch the recording to get file path
         let recordings = try localStore.fetch(projectId: nil, status: nil)
-        guard let recording = recordings.first(where: { $0.id == recordingId }) else { return }
+        guard let recording = recordings.first(where: { $0.id == recordingId }) else {
+            return
+        }
 
         // Delete file from storage
         let fileURL = URL(fileURLWithPath: recording.localFilePath)
-        try? fileStorage.removeFile(at: fileURL)
+        do {
+            try fileStorage.removeFile(at: fileURL)
+        } catch {
+            Logger.error("⚠️ [DeleteDraftUseCase] 删除文件失败: \(error.localizedDescription)")
+            // 继续删除数据库记录，即使文件删除失败
+        }
 
         // Remove from database
         try localStore.remove(recordingId)

@@ -10,6 +10,8 @@ final class ProjectDetailViewModel: ObservableObject {
     @Published var playingRecordingId: String?
     @Published var uploadingRecordingId: String?
     @Published var uploadProgress: Double = 0
+    @Published var recordingToDelete: Recording?
+    @Published var shouldDeleteRecording: Bool = false
 
     private var container: DIContainer?
     private let projectId: String
@@ -21,6 +23,14 @@ final class ProjectDetailViewModel: ObservableObject {
     func configure(container: DIContainer) {
         self.container = container
         container.audioPlayerService.delegate = self
+    }
+    
+    func cleanup() {
+        // 清理资源，停止播放
+        if let container = container, playingRecordingId != nil {
+            container.audioPlayerService.stop()
+            playingRecordingId = nil
+        }
     }
 
     func loadRecordings() async {
@@ -118,20 +128,42 @@ final class ProjectDetailViewModel: ObservableObject {
         try container.recordingLocalStore.update(id: recording.id, status: .completed, progress: 100)
     }
 
-    func deleteRecording(_ recording: Recording) async {
-        guard let container else { return }
-
+    func confirmDeleteRecording(_ recording: Recording) {
+        recordingToDelete = recording
+    }
+    
+    func deleteRecording(recording: Recording) async {
+        guard let container else { 
+            recordingToDelete = nil
+            shouldDeleteRecording = false
+            return 
+        }
+        
+        // 保存要删除的录音ID和文件路径
+        let recordingId = recording.id
+        let filePath = recording.localFilePath
+        
         do {
             if playingRecordingId == recording.id {
                 container.audioPlayerService.stop()
             }
 
-            try container.recordingLocalStore.remove(recording.id)
-            let fileURL = URL(fileURLWithPath: recording.localFilePath)
+            // 先删除数据库记录
+            try container.recordingLocalStore.remove(recordingId)
+            
+            // 再删除文件
+            let fileURL = URL(fileURLWithPath: filePath)
             try container.fileStorageService.removeFile(at: fileURL)
+            
+            // 清空待删除的录音并刷新列表
+            recordingToDelete = nil
+            shouldDeleteRecording = false
             await loadRecordings()
         } catch {
+            Logger.error("❌ [ProjectDetail] 删除失败: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
+            recordingToDelete = nil
+            shouldDeleteRecording = false
         }
     }
 
