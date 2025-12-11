@@ -68,14 +68,17 @@ struct ProjectDetailView: View {
         .alert(item: Binding<Recording?>(
             get: { viewModel.recordingToDelete },
             set: { newValue in
-                // 只有在取消时才清空，确认删除时不清空（由 deleteRecording 方法清空）
-                if newValue == nil && viewModel.recordingToDelete != nil {
-                    // 检查是否是取消操作（通过检查 shouldDeleteRecording 标志）
-                    // 如果是确认删除，shouldDeleteRecording 会被设置为 true
+                // 只有在没有设置删除标志时才允许清空（即用户取消时）
+                // 如果是确认删除，shouldDeleteRecording 会在 primaryButton action 中设置，
+                // 然后由 deleteRecording 方法负责清空状态
+                if newValue == nil {
+                    // 只有在没有设置删除标志时才清空（用户点击取消）
                     if !viewModel.shouldDeleteRecording {
                         viewModel.recordingToDelete = nil
                     }
                 } else {
+                    // 设置新的录音时，重置删除标志
+                    viewModel.shouldDeleteRecording = false
                     viewModel.recordingToDelete = newValue
                 }
             }
@@ -84,16 +87,17 @@ struct ProjectDetailView: View {
                 title: Text(LocalizedStringKey.deleteRecordingTitle.localized),
                 message: Text(LocalizedStringKey.deleteRecordingMessage.localized),
                 primaryButton: .destructive(Text(LocalizedStringKey.deleteRecordingConfirm.localized)) {
-                    // 先保存要删除的录音，因为 alert 关闭时会清空 recordingToDelete
+                    // 保存要删除的录音信息（在 Alert 关闭前保存，避免状态被清空）
                     let recordingToDelete = recording
-                    // 设置标志，防止 alert 关闭时清空
+                    // 先设置标志，防止 Alert 关闭时 set 被调用导致 recordingToDelete 被清空
                     viewModel.shouldDeleteRecording = true
-                    // 直接执行删除，不等待 alert 关闭
+                    // 执行删除操作，传入保存的 recording 副本
                     Task { @MainActor in
                         await viewModel.deleteRecording(recording: recordingToDelete)
                     }
                 },
                 secondaryButton: .cancel(Text(LocalizedStringKey.deleteRecordingCancel.localized)) {
+                    // 取消删除，重置状态
                     viewModel.shouldDeleteRecording = false
                     viewModel.recordingToDelete = nil
                 }

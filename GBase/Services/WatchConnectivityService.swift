@@ -220,6 +220,8 @@ extension WatchConnectivityService: WCSessionDelegate {
             // Save to local store
             try recordingLocalStore.upsert(recording)
             print("✅ [iPhone] Recording saved to database: \(recording.id)")
+            print("✅ [iPhone] Recording file path: \(destinationURL.path)")
+            print("✅ [iPhone] Recording custom name: \(recording.customName ?? "nil")")
 
             // Update published property and send notification to refresh UI
             await MainActor.run {
@@ -232,7 +234,19 @@ extension WatchConnectivityService: WCSessionDelegate {
             // Send confirmation back to Watch
             sendDraftConfirmation(recordingId: recording.id)
 
-            print("✅ Recording saved as draft: \(recording.id)")
+            print("✅ [iPhone] Recording saved as draft: \(recording.id)")
+            
+            // Verify the recording was actually saved by fetching it back
+            do {
+                let savedRecordings = try recordingLocalStore.fetch(projectId: nil, status: nil)
+                if let savedRecording = savedRecordings.first(where: { $0.id == recording.id }) {
+                    print("✅ [iPhone] Verified: Recording exists in database with ID: \(savedRecording.id)")
+                } else {
+                    print("⚠️ [iPhone] Warning: Recording was not found in database after save")
+                }
+            } catch {
+                print("⚠️ [iPhone] Could not verify recording save: \(error)")
+            }
 
         } catch {
             print("❌ Failed to save recording from Watch: \(error)")

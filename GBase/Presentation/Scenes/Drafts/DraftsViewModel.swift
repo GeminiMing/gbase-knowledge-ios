@@ -10,6 +10,7 @@ final class DraftsViewModel: ObservableObject {
     @Published var playingRecordingId: String?
     @Published var fileMissingRecordingIds: Set<String> = []  // 追踪文件缺失的录音
     @Published var draftToDelete: Recording?
+    @Published var shouldDeleteDraft: Bool = false  // Flag to prevent clearing draftToDelete during deletion
 
     private var container: DIContainer?
 
@@ -33,25 +34,47 @@ final class DraftsViewModel: ObservableObject {
 
         do {
             let fetchedDrafts = try container.fetchDraftsUseCase.execute()
+            Logger.debug("📋 [DraftsViewModel] Loaded \(fetchedDrafts.count) drafts from database")
 
             // 过滤出文件实际存在的录音，并按创建时间倒序排列
             let fileManager = FileManager.default
-            let validDrafts = fetchedDrafts.filter { draft in
+            var validDrafts: [Recording] = []
+            var invalidDraftIds: [String] = []
+            
+            for draft in fetchedDrafts {
                 let fileExists = fileManager.fileExists(atPath: draft.localFilePath)
-                if !fileExists {
-                    // 可以选择删除这些无效的记录
-                    Task {
+                if fileExists {
+                    validDrafts.append(draft)
+                } else {
+                    // 只有在非上传状态下才删除无效记录（避免上传过程中误删）
+                    if draft.uploadStatus != .uploading {
+                        Logger.info("⚠️ [DraftsViewModel] Draft file missing: \(draft.id), path: \(draft.localFilePath)")
+                        invalidDraftIds.append(draft.id)
+                    } else {
+                        // 上传中的录音即使文件暂时不存在也保留记录
+                        Logger.debug("📋 [DraftsViewModel] Keeping uploading draft even if file missing: \(draft.id)")
+                        validDrafts.append(draft)
+                    }
+                }
+            }
+            
+            // 异步删除无效记录
+            if !invalidDraftIds.isEmpty {
+                Logger.debug("🗑️ [DraftsViewModel] Will delete \(invalidDraftIds.count) invalid drafts")
+                Task {
+                    for draftId in invalidDraftIds {
                         do {
-                            try container.deleteDraftUseCase.execute(recordingId: draft.id)
+                            try container.deleteDraftUseCase.execute(recordingId: draftId)
+                            Logger.debug("✅ [DraftsViewModel] Deleted invalid draft: \(draftId)")
                         } catch {
                             Logger.error("❌ [DraftsViewModel] Failed to delete draft with missing file: \(error)")
                         }
                     }
                 }
-                return fileExists
             }
 
             drafts = validDrafts.sorted { $0.createdAt > $1.createdAt }
+            Logger.debug("✅ [DraftsViewModel] Displaying \(drafts.count) valid drafts")
         } catch {
             Logger.error("❌ [DraftsViewModel] 加载草稿失败: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
@@ -59,33 +82,53 @@ final class DraftsViewModel: ObservableObject {
     }
 
     func confirmDeleteDraft(_ recording: Recording) {
+        Logger.debug("🗑️ [DraftsViewModel] confirmDeleteDraft called with recording: \(recording.id)")
         draftToDelete = recording
+        Logger.debug("🗑️ [DraftsViewModel] draftToDelete set to: \(draftToDelete?.id ?? "nil")")
     }
     
-    func deleteDraft() async {
-        guard let container, let recording = draftToDelete else { 
+    func deleteDraft(recording: Recording) async {
+        Logger.debug("🗑️ [DraftsViewModel] deleteDraft called with recording: \(recording.id)")
+        
+        guard let container else {
+            Logger.error("❌ [DraftsViewModel] Container is nil, cannot delete")
             draftToDelete = nil
-            return 
+            shouldDeleteDraft = false
+            return
         }
 
         // 保存要删除的录音ID
         let recordingId = recording.id
+        Logger.debug("🗑️ [DraftsViewModel] Starting delete for recording: \(recordingId)")
+
+        // 先停止播放（如果在播放）
+        if playingRecordingId == recording.id {
+            Logger.debug("🗑️ [DraftsViewModel] Stopping playback for recording: \(recordingId)")
+            container.audioPlayerService.stop()
+            playingRecordingId = nil
+        }
 
         do {
-            if playingRecordingId == recording.id {
-                container.audioPlayerService.stop()
-            }
-
+            Logger.debug("🗑️ [DraftsViewModel] Calling deleteDraftUseCase.execute for: \(recordingId)")
             // 执行删除
             try container.deleteDraftUseCase.execute(recordingId: recordingId)
             
-            // 清空待删除的草稿并刷新列表
-            draftToDelete = nil
+            Logger.debug("✅ [DraftsViewModel] 删除成功: \(recordingId)")
+            
+            // 刷新列表（确保在主线程）
+            Logger.debug("🔄 [DraftsViewModel] Reloading drafts list")
             await loadDrafts()
+            
+            // 清空待删除的草稿状态
+            draftToDelete = nil
+            shouldDeleteDraft = false
+            Logger.debug("✅ [DraftsViewModel] Delete completed, state cleared")
         } catch {
             Logger.error("❌ [DraftsViewModel] 删除失败: \(error.localizedDescription)")
+            Logger.error("❌ [DraftsViewModel] Error details: \(error)")
             errorMessage = error.localizedDescription
             draftToDelete = nil
+            shouldDeleteDraft = false
         }
     }
 

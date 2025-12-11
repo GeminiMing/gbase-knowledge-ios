@@ -29,6 +29,8 @@ public final class RecorderViewModel: NSObject, ObservableObject {
     @Published var completedDraftRecordingId: String?  // ID of the completed draft recording
     @Published var saveToProjectSelectedProjectId: String?  // Selected project for save to project
     @Published var isBindingToProject: Bool = false  // Binding in progress
+    @Published var recordingToDelete: Recording?  // Recording to be deleted
+    @Published var shouldDeleteRecording: Bool = false  // Flag to prevent clearing recordingToDelete during deletion
 
     public struct ProjectOption: Identifiable, Equatable {
         public let id: String
@@ -320,20 +322,48 @@ public final class RecorderViewModel: NSObject, ObservableObject {
         playingRecordingId == recording.id
     }
 
+    func confirmDeleteRecording(_ recording: Recording) {
+        recordingToDelete = recording
+    }
+    
     func delete(recording: Recording) async {
-        guard let container else { return }
+        guard let container else { 
+            recordingToDelete = nil
+            shouldDeleteRecording = false
+            return 
+        }
+
+        // 保存要删除的录音ID和文件路径
+        let recordingId = recording.id
+        let filePath = recording.localFilePath
+
+        // 先停止播放（如果在播放）
+        if playingRecordingId == recording.id {
+            container.audioPlayerService.stop()
+            playingRecordingId = nil
+        }
 
         do {
-            if playingRecordingId == recording.id {
-                container.audioPlayerService.stop()
-            }
-
-            try container.recordingLocalStore.remove(recording.id)
-            let fileURL = URL(fileURLWithPath: recording.localFilePath)
+            // 先删除数据库记录
+            try container.recordingLocalStore.remove(recordingId)
+            
+            // 再删除文件
+            let fileURL = URL(fileURLWithPath: filePath)
             try container.fileStorageService.removeFile(at: fileURL)
+            
+            Logger.debug("✅ [RecorderViewModel] 删除成功: \(recordingId)")
+            
+            // 刷新列表（确保在主线程）
             await loadLocalRecordings()
+            
+            // 清空待删除的录音状态
+            recordingToDelete = nil
+            shouldDeleteRecording = false
         } catch {
+            Logger.error("❌ [RecorderViewModel] 删除失败: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
+            recordingToDelete = nil
+            shouldDeleteRecording = false
         }
     }
 

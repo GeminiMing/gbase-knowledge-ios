@@ -67,8 +67,10 @@ class RecorderViewModel: NSObject, ObservableObject {
             return
         }
 
-        // Create recording file URL
-        let fileName = "recording_\\(Date().timeIntervalSince1970).m4a"
+        // Create recording file URL with unique identifier to avoid conflicts
+        let timestamp = Date().timeIntervalSince1970
+        let uniqueId = UUID().uuidString.prefix(8)
+        let fileName = "recording_\(Int(timestamp))_\(uniqueId).m4a"
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         recordingURL = documentsPath.appendingPathComponent(fileName)
 

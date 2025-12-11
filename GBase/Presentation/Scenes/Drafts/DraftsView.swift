@@ -55,18 +55,62 @@ struct DraftsView: View {
                       dismissButton: .default(Text(LocalizedStringKey.commonOk.localized)))
             }
             .alert(item: Binding<Recording?>(
-                get: { viewModel.draftToDelete },
-                set: { viewModel.draftToDelete = $0 }
+                get: {
+                    let value = viewModel.draftToDelete
+                    print("📋 [DraftsView] Alert Binding get called, returning: \(value?.id ?? "nil")")
+                    return value
+                },
+                set: { newValue, transaction in
+                    print("📋 [DraftsView] Alert Binding set called with: \(newValue?.id ?? "nil")")
+                    print("📋 [DraftsView] Current shouldDeleteDraft: \(viewModel.shouldDeleteDraft)")
+                    
+                    // 只有在没有设置删除标志时才允许清空（即用户取消时）
+                    // 如果是确认删除，shouldDeleteDraft 会在 primaryButton action 中设置，
+                    // 然后由 deleteDraft 方法负责清空状态
+                    if newValue == nil {
+                        // 只有在没有设置删除标志时才清空（用户点击取消）
+                        if !viewModel.shouldDeleteDraft {
+                            print("📋 [DraftsView] Clearing draftToDelete (user cancelled)")
+                            viewModel.draftToDelete = nil
+                        } else {
+                            print("📋 [DraftsView] NOT clearing draftToDelete (deletion in progress)")
+                        }
+                    } else {
+                        // 设置新的草稿时，重置删除标志
+                        if let recording = newValue {
+                            print("📋 [DraftsView] Setting new draftToDelete: \(recording.id)")
+                            viewModel.shouldDeleteDraft = false
+                            viewModel.draftToDelete = recording
+                        }
+                    }
+                }
             )) { recording in
                 Alert(
                     title: Text(LocalizedStringKey.deleteRecordingTitle.localized),
                     message: Text(LocalizedStringKey.deleteRecordingMessage.localized),
                     primaryButton: .destructive(Text(LocalizedStringKey.deleteRecordingConfirm.localized)) {
+                        print("🗑️ [DraftsView] Delete confirmed for recording: \(recording.id)")
+                        
+                        // 保存要删除的录音信息（在 Alert 关闭前保存，避免状态被清空）
+                        let recordingToDelete = recording
+                        
+                        // 先设置标志，防止 Alert 关闭时 set 被调用导致 draftToDelete 被清空
+                        viewModel.shouldDeleteDraft = true
+                        print("🗑️ [DraftsView] shouldDeleteDraft set to true")
+                        print("🗑️ [DraftsView] draftToDelete before delete: \(viewModel.draftToDelete?.id ?? "nil")")
+                        print("🗑️ [DraftsView] Using saved recording copy: \(recordingToDelete.id)")
+                        
+                        // 执行删除操作，传入保存的 recording 副本，不依赖状态
                         Task { @MainActor in
-                            await viewModel.deleteDraft()
+                            print("🗑️ [DraftsView] Starting delete task")
+                            await viewModel.deleteDraft(recording: recordingToDelete)
+                            print("🗑️ [DraftsView] Delete task completed")
                         }
                     },
                     secondaryButton: .cancel(Text(LocalizedStringKey.deleteRecordingCancel.localized)) {
+                        print("❌ [DraftsView] Delete cancelled")
+                        // 取消删除，重置状态
+                        viewModel.shouldDeleteDraft = false
                         viewModel.draftToDelete = nil
                     }
                 )

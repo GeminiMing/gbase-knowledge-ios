@@ -143,11 +143,13 @@ final class ProjectDetailViewModel: ObservableObject {
         let recordingId = recording.id
         let filePath = recording.localFilePath
         
+        // 先停止播放（如果在播放）
+        if playingRecordingId == recording.id {
+            container.audioPlayerService.stop()
+            playingRecordingId = nil
+        }
+        
         do {
-            if playingRecordingId == recording.id {
-                container.audioPlayerService.stop()
-            }
-
             // 先删除数据库记录
             try container.recordingLocalStore.remove(recordingId)
             
@@ -155,10 +157,14 @@ final class ProjectDetailViewModel: ObservableObject {
             let fileURL = URL(fileURLWithPath: filePath)
             try container.fileStorageService.removeFile(at: fileURL)
             
-            // 清空待删除的录音并刷新列表
+            Logger.debug("✅ [ProjectDetail] 删除成功: \(recordingId)")
+            
+            // 刷新列表（确保在主线程）
+            await loadRecordings()
+            
+            // 清空待删除的录音状态
             recordingToDelete = nil
             shouldDeleteRecording = false
-            await loadRecordings()
         } catch {
             Logger.error("❌ [ProjectDetail] 删除失败: \(error.localizedDescription)")
             errorMessage = error.localizedDescription
