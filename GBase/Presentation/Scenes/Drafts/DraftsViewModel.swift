@@ -35,6 +35,11 @@ final class DraftsViewModel: ObservableObject {
         do {
             let fetchedDrafts = try container.fetchDraftsUseCase.execute()
             Logger.debug("📋 [DraftsViewModel] Loaded \(fetchedDrafts.count) drafts from database")
+            
+            // 打印所有草稿的详细信息
+            for draft in fetchedDrafts {
+                Logger.debug("📋 [DraftsViewModel] Draft: \(draft.id), fileName: \(draft.fileName), filePath: \(draft.localFilePath), customName: \(draft.customName ?? "nil")")
+            }
 
             // 过滤出文件实际存在的录音，并按创建时间倒序排列
             let fileManager = FileManager.default
@@ -43,6 +48,8 @@ final class DraftsViewModel: ObservableObject {
             
             for draft in fetchedDrafts {
                 let fileExists = fileManager.fileExists(atPath: draft.localFilePath)
+                Logger.debug("📋 [DraftsViewModel] File exists check for \(draft.id): \(fileExists) at path: \(draft.localFilePath)")
+                
                 if fileExists {
                     validDrafts.append(draft)
                 } else {

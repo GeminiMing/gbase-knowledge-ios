@@ -181,11 +181,8 @@ public struct DIContainer {
         // Create UserCredentialsStore
         let credentialsStore = UserCredentialsStore()
 
-        // Create WatchConnectivityService
-        let watchConnectivityService = WatchConnectivityService(
-            recordingLocalStore: recordingLocalStore,
-            fileStorageService: fileStorageService
-        )
+        // Create WatchConnectivityService - use shared instance to ensure single instance
+        let watchConnectivityService = WatchConnectivityService.shared
 
         return DIContainer(appState: appState,
                            apiConfiguration: config,

@@ -16,7 +16,8 @@ public final class RemoteMeetingRepository: MeetingRepository {
                                               title: title,
                                               meetingTime: meetingTime,
                                               location: location,
-                                              description: description)
+                                              description: description,
+                                              sourcePlatformInfo: Bundle.sourcePlatformInfo)
 
         let response = try await client.send(Endpoint(path: "/meeting/create", method: .post),
                                              body: request,

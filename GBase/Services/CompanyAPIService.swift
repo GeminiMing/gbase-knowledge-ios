@@ -22,6 +22,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/my/company/default")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
         try await request.addAuthHeaders(tokenStore: tokenStore)
 
         print("🌐 API 请求: GET \(url.absoluteString)")
@@ -49,6 +50,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/my/companies")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
         try await request.addAuthHeaders(tokenStore: tokenStore)
 
         print("🌐 API 请求: GET \(url.absoluteString)")
@@ -76,6 +78,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/my/company/default")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
         try await request.addAuthHeaders(tokenStore: tokenStore)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -129,6 +132,7 @@ public class CompanyAPIService {
         let url = URL(string: "\(baseURL)/user/company/\(companyId)/my/authority/")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
         try await request.addAuthHeaders(tokenStore: tokenStore)
 
         let (data, response) = try await session.data(for: request)

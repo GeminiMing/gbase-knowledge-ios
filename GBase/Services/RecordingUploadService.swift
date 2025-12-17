@@ -67,9 +67,10 @@ public final class RecordingUploadService: RecordingUploadServiceType {
             body.append("\(value)\r\n".data(using: .utf8)!)
         }
         
-        // Only send these three fields: meetingId, fileType, file
+        // Send fields: meetingId, fileType, sourcePlatformInfo, file
         appendField("meetingId", String(meetingIdInt))
         appendField("fileType", fileType)
+        appendField("sourcePlatformInfo", Bundle.sourcePlatformInfo)
         
         // Add file
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -100,6 +101,7 @@ public final class RecordingUploadService: RecordingUploadServiceType {
         request.httpMethod = HTTPMethod.post.rawValue
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.setValue("true", forHTTPHeaderField: "Bench-X-JsonOutputResult-Data")
+        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
         // Note: Do not set httpBody when using upload(for:fromFile:)
         // The body will be read from the file
         

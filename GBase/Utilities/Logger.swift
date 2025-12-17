@@ -46,3 +46,17 @@ struct Logger {
     }
 }
 
+// MARK: - App Version Helper
+extension Bundle {
+    static var appVersion: String {
+        guard let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {
+            return "Unknown"
+        }
+        return version
+    }
+    
+    static var sourcePlatformInfo: String {
+        return "GBase IOS APP \(appVersion)"
+    }
+}
+

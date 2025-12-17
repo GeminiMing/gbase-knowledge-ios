@@ -46,7 +46,7 @@ public class WatchConnectivityService: NSObject, ObservableObject {
 
     public func sendDraftConfirmation(recordingId: String) {
         guard let session = session, session.isReachable else {
-            print("Watch is not reachable")
+            print("Watch is not reachable or session is not available")
             return
         }
 
@@ -57,9 +57,9 @@ public class WatchConnectivityService: NSObject, ObservableObject {
         ]
 
         session.sendMessage(message, replyHandler: { response in
-            print("Watch acknowledged draft save: \\(response)")
+            print("Watch acknowledged draft save: \(response)")
         }, errorHandler: { error in
-            print("Failed to send draft confirmation to watch: \\(error)")
+            print("Failed to send draft confirmation to watch: \(error)")
         })
     }
 }
@@ -125,6 +125,8 @@ extension WatchConnectivityService: WCSessionDelegate {
     public func session(_ session: WCSession, didReceive file: WCSessionFile) {
         print("📥 [iPhone] Received file from Watch: \(file.fileURL.lastPathComponent)")
         print("📥 [iPhone] File metadata: \(file.metadata ?? [:])")
+        print("📥 [iPhone] File URL: \(file.fileURL)")
+        print("📥 [iPhone] File URL path: \(file.fileURL.path)")
 
         Task {
             await handleReceivedFile(file)
@@ -134,7 +136,10 @@ extension WatchConnectivityService: WCSessionDelegate {
     // MARK: - Handle Received Data
 
     private func handleReceivedMessage(_ message: [String: Any]) {
-        guard let type = message["type"] as? String else { return }
+        guard let type = message["type"] as? String else { 
+            print("⚠️ [iPhone] Received message without type field: \(message)")
+            return 
+        }
 
         switch type {
         case "recording":
@@ -142,7 +147,7 @@ extension WatchConnectivityService: WCSessionDelegate {
             // Metadata is handled when file arrives
             break
         default:
-            print("Unknown message type: \\(type)")
+            print("Unknown message type: \(type)")
         }
     }
 
@@ -198,14 +203,14 @@ extension WatchConnectivityService: WCSessionDelegate {
             print("✅ [iPhone] Saved file size: \(savedFileSize) bytes")
 
             // Create Recording entity as draft
-            let watchRecordingName = NSLocalizedString(LocalizedStringKey.watchRecordingDefaultName.localized, comment: "")
+            let watchRecordingName = NSLocalizedString(LocalizedStringKey.watchRecordingDefaultName, comment: "")
             let recording = Recording(
                 id: UUID().uuidString,
                 meetingId: nil,  // Draft - no meeting
                 projectId: nil,  // Draft - no project
-                fileName: fileName,
+                fileName: destinationURL.lastPathComponent,  // 使用实际保存的文件名
                 customName: "\(watchRecordingName) \(formatDate(Date(timeIntervalSince1970: timestamp)))",
-                localFilePath: destinationURL.path,
+                localFilePath: destinationURL.path,  // 使用实际保存的文件路径
                 fileSize: Int64(savedFileSize > 0 ? savedFileSize : fileSize),
                 duration: duration,
                 contentHash: nil,  // Will be computed later if needed
@@ -216,6 +221,8 @@ extension WatchConnectivityService: WCSessionDelegate {
                 actualStartAt: Date(timeIntervalSince1970: timestamp),
                 actualEndAt: Date(timeIntervalSince1970: timestamp + duration)
             )
+
+            print("📥 [iPhone] Creating recording with ID: \(recording.id), fileName: \(recording.fileName), filePath: \(recording.localFilePath)")
 
             // Save to local store
             try recordingLocalStore.upsert(recording)

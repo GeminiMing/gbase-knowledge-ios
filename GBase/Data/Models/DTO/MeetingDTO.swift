@@ -6,6 +6,7 @@ struct CreateMeetingRequestDTO: Encodable {
     let meetingTime: Date
     let location: String?
     let description: String?
+    let sourcePlatformInfo: String
 
     private enum CodingKeys: String, CodingKey {
         case projectId
@@ -14,6 +15,7 @@ struct CreateMeetingRequestDTO: Encodable {
         case actualStartAt
         case location
         case description
+        case sourcePlatformInfo
     }
 
     func encode(to encoder: Encoder) throws {
@@ -27,6 +29,7 @@ struct CreateMeetingRequestDTO: Encodable {
 
         try container.encodeIfPresent(location, forKey: .location)
         try container.encodeIfPresent(description, forKey: .description)
+        try container.encode(sourcePlatformInfo, forKey: .sourcePlatformInfo)
     }
 }
 
