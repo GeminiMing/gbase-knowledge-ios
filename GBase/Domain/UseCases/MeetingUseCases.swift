@@ -26,6 +26,10 @@ public protocol FetchMeetingDetailUseCase {
     func execute(meetingId: String) async throws -> MeetingDetail
 }
 
+public protocol DeleteMeetingUseCase {
+    func execute(meetingId: String) async throws
+}
+
 public final class DefaultCreateMeetingUseCase: CreateMeetingUseCase {
     private let repository: MeetingRepository
 
@@ -91,6 +95,18 @@ public final class DefaultFetchMeetingDetailUseCase: FetchMeetingDetailUseCase {
 
     public func execute(meetingId: String) async throws -> MeetingDetail {
         try await repository.fetchMeetingDetail(meetingId: meetingId)
+    }
+}
+
+public final class DefaultDeleteMeetingUseCase: DeleteMeetingUseCase {
+    private let repository: MeetingRepository
+
+    public init(repository: MeetingRepository) {
+        self.repository = repository
+    }
+
+    public func execute(meetingId: String) async throws {
+        try await repository.deleteMeeting(meetingId: meetingId)
     }
 }
 

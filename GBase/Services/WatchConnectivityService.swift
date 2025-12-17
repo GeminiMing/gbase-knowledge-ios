@@ -169,6 +169,16 @@ extension WatchConnectivityService: WCSessionDelegate {
         let duration = (metadata["duration"] as? TimeInterval) ?? 0
         let timestamp = (metadata["timestamp"] as? TimeInterval) ?? Date().timeIntervalSince1970
 
+        // Check if duration is less than 15 seconds
+        if duration < 15.0 {
+            print("⚠️ [iPhone] Recording duration too short (\(duration) seconds), deleting file")
+            // Delete the received file
+            try? FileManager.default.removeItem(at: file.fileURL)
+            // Note: We can't show an alert here as this is a background service
+            // The Watch app should have already shown the error message
+            return
+        }
+
         // Try to get file size from metadata, or from actual file
         var fileSize: Int
         if let metadataSize = metadata["fileSize"] as? Int {

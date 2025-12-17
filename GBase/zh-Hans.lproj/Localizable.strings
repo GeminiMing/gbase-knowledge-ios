@@ -92,6 +92,7 @@
 "recorder.save_later" = "稍后";
 "recorder.failed_to_start" = "无法启动录音";
 "recorder.session_busy" = "麦克风被其他应用占用，请关闭其他正在使用麦克风的应用后重试";
+"recorder.duration_too_short" = "音频时间过短（少于15秒），已自动删除";
 
 /* Upload Status */
 "upload_status.pending" = "待上传";

@@ -9,3 +9,4 @@
 
 /* Recording saved confirmation */
 "watch_recording.saved_to_iphone" = "Saved to iPhone";
+"recorder.duration_too_short" = "Recording duration is too short (less than 15 seconds), automatically deleted";

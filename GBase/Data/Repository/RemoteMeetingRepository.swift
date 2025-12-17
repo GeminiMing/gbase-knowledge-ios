@@ -126,5 +126,9 @@ public final class RemoteMeetingRepository: MeetingRepository {
         let participants = response.participants.map(MeetingMapper.mapParticipant)
         return MeetingDetail(meeting: meeting, recordings: recordings, participants: participants)
     }
+
+    public func deleteMeeting(meetingId: String) async throws {
+        try await client.sendWithoutDecoding(Endpoint(path: "/meeting/\(meetingId)", method: .delete))
+    }
 }
 

@@ -33,7 +33,7 @@ public struct RequestBuilder {
         request.httpMethod = endpoint.method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("true", forHTTPHeaderField: "Bench-X-JsonOutputResult-Data")
-        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
+        request.setValue("Gbase-Knowledge-Mobile-App", forHTTPHeaderField: "User-Agent")
 
         for (key, value) in headers {
             request.setValue(value, forHTTPHeaderField: key)

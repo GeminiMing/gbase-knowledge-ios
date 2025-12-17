@@ -99,9 +99,9 @@ struct ProjectRecorderView: View {
             container.audioPlayerService.stop()
             // 注意：不在这里调用 cancelRecording，因为切换tab不应该停止录音
         }
-        .onChange(of: viewModel?.status) { oldValue, newValue in
+        .onChange(of: viewModel?.status) { newValue in
             // 当上传完成后自动返回
-            if case .completed = newValue {
+            if let status = newValue, case .completed = status {
                 Task {
                     try? await Task.sleep(nanoseconds: 1_000_000_000) // 等待1秒让用户看到完成状态
                     await MainActor.run {

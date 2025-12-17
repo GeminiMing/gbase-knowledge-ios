@@ -9,3 +9,4 @@
 
 /* Recording saved confirmation */
 "watch_recording.saved_to_iphone" = "iPhoneに保存されました";
+"recorder.duration_too_short" = "録音時間が短すぎます（15秒未満）、自動的に削除されました";

@@ -101,7 +101,7 @@ public final class RecordingUploadService: RecordingUploadServiceType {
         request.httpMethod = HTTPMethod.post.rawValue
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.setValue("true", forHTTPHeaderField: "Bench-X-JsonOutputResult-Data")
-        request.setValue("Gbase-Support-Mobile-App", forHTTPHeaderField: "User-Agent")
+        request.setValue("Gbase-Knowledge-Mobile-App", forHTTPHeaderField: "User-Agent")
         // Note: Do not set httpBody when using upload(for:fromFile:)
         // The body will be read from the file
         

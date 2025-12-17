@@ -92,6 +92,7 @@
 "recorder.save_later" = "後で";
 "recorder.failed_to_start" = "録音を開始できません";
 "recorder.session_busy" = "マイクが他のアプリで使用されています。他のアプリを閉じてから再試行してください";
+"recorder.duration_too_short" = "録音時間が短すぎます（15秒未満）、自動的に削除されました";
 
 /* Upload Status */
 "upload_status.pending" = "保留中";

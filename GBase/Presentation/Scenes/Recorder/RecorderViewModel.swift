@@ -224,6 +224,33 @@ public final class RecorderViewModel: NSObject, ObservableObject {
             let fileSize = try container.fileStorageService.fileSize(at: fileURL)
             let duration = try await durationOfFile(at: fileURL)
 
+            // Check if duration is less than 15 seconds
+            if duration < 15.0 {
+                // Delete the recording file
+                try? container.fileStorageService.removeFile(at: fileURL)
+                
+                // If not in draft mode (has a meeting), delete the meeting as well
+                if !isDraftMode, let meetingId = preparedMeeting?.id {
+                    do {
+                        try await container.deleteMeetingUseCase.execute(meetingId: meetingId)
+                        print("✅ [RecorderViewModel] Deleted meeting \(meetingId) due to short recording duration")
+                        // Clear prepared meeting
+                        preparedMeeting = nil
+                    } catch {
+                        print("⚠️ [RecorderViewModel] Failed to delete meeting \(meetingId): \(error.localizedDescription)")
+                        // Continue even if meeting deletion fails
+                    }
+                }
+                
+                // Set error message and return
+                errorMessage = LocalizedStringKey.recorderDurationTooShort.localized
+                status = .idle
+                recordingURL = nil
+                recordingStartAt = nil
+                resetWaveform()
+                return
+            }
+
             // Create recording as draft if in draft mode
             let recording = Recording(
                 id: UUID().uuidString,

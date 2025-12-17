@@ -9,3 +9,4 @@
 
 /* Recording saved confirmation */
 "watch_recording.saved_to_iphone" = "已保存到iPhone";
+"recorder.duration_too_short" = "音频时间过短（少于15秒），已自动删除";

@@ -14,6 +14,7 @@ public struct DIContainer {
     public let fetchMyMeetingsUseCase: FetchMyMeetingsUseCase
     public let fetchProjectMeetingsUseCase: FetchProjectMeetingsUseCase
     public let fetchMeetingDetailUseCase: FetchMeetingDetailUseCase
+    public let deleteMeetingUseCase: DeleteMeetingUseCase
     public let applyRecordingUploadUseCase: ApplyRecordingUploadUseCase
     public let finishRecordingUploadUseCase: FinishRecordingUploadUseCase
 
@@ -45,6 +46,7 @@ public struct DIContainer {
                 fetchMyMeetingsUseCase: FetchMyMeetingsUseCase,
                 fetchProjectMeetingsUseCase: FetchProjectMeetingsUseCase,
                 fetchMeetingDetailUseCase: FetchMeetingDetailUseCase,
+                deleteMeetingUseCase: DeleteMeetingUseCase,
                 applyRecordingUploadUseCase: ApplyRecordingUploadUseCase,
                 finishRecordingUploadUseCase: FinishRecordingUploadUseCase,
                 fetchDraftsUseCase: FetchDraftsUseCase,
@@ -72,6 +74,7 @@ public struct DIContainer {
         self.fetchMyMeetingsUseCase = fetchMyMeetingsUseCase
         self.fetchProjectMeetingsUseCase = fetchProjectMeetingsUseCase
         self.fetchMeetingDetailUseCase = fetchMeetingDetailUseCase
+        self.deleteMeetingUseCase = deleteMeetingUseCase
         self.applyRecordingUploadUseCase = applyRecordingUploadUseCase
         self.finishRecordingUploadUseCase = finishRecordingUploadUseCase
         self.fetchDraftsUseCase = fetchDraftsUseCase
@@ -131,6 +134,7 @@ public struct DIContainer {
         let fetchMyMeetingsUseCase = DefaultFetchMyMeetingsUseCase(repository: meetingRepository)
         let fetchProjectMeetingsUseCase = DefaultFetchProjectMeetingsUseCase(repository: meetingRepository)
         let fetchMeetingDetailUseCase = DefaultFetchMeetingDetailUseCase(repository: meetingRepository)
+        let deleteMeetingUseCase = DefaultDeleteMeetingUseCase(repository: meetingRepository)
         let applyRecordingUploadUseCase = DefaultApplyRecordingUploadUseCase(repository: recordingRepository)
         let finishRecordingUploadUseCase = DefaultFinishRecordingUploadUseCase(repository: recordingRepository)
 
@@ -195,6 +199,7 @@ public struct DIContainer {
                            fetchMyMeetingsUseCase: fetchMyMeetingsUseCase,
                            fetchProjectMeetingsUseCase: fetchProjectMeetingsUseCase,
                            fetchMeetingDetailUseCase: fetchMeetingDetailUseCase,
+                           deleteMeetingUseCase: deleteMeetingUseCase,
                            applyRecordingUploadUseCase: applyRecordingUploadUseCase,
                            finishRecordingUploadUseCase: finishRecordingUploadUseCase,
                            fetchDraftsUseCase: fetchDraftsUseCase,
@@ -240,6 +245,7 @@ public struct DIContainer {
                            fetchMyMeetingsUseCase: MockMeetingsUseCase(),
                            fetchProjectMeetingsUseCase: MockMeetingsUseCase(),
                            fetchMeetingDetailUseCase: MockMeetingsUseCase(),
+                           deleteMeetingUseCase: MockMeetingsUseCase(),
                            applyRecordingUploadUseCase: MockRecordingUseCase(),
                            finishRecordingUploadUseCase: MockRecordingUseCase(),
                            fetchDraftsUseCase: MockDraftUseCases(localStore: recordingLocalStore),
@@ -339,7 +345,7 @@ private final class MockProjectsUseCase: FetchProjectsUseCase, FetchEditableProj
     }
 }
 
-private final class MockMeetingsUseCase: CreateMeetingUseCase, FetchMyMeetingsUseCase, FetchProjectMeetingsUseCase, FetchMeetingDetailUseCase {
+private final class MockMeetingsUseCase: CreateMeetingUseCase, FetchMyMeetingsUseCase, FetchProjectMeetingsUseCase, FetchMeetingDetailUseCase, DeleteMeetingUseCase {
     func execute(projectId: String, title: String, meetingTime: Date, location: String?, description: String?) async throws -> Meeting {
         Meeting(id: UUID().uuidString,
                 projectId: projectId,
@@ -368,6 +374,10 @@ private final class MockMeetingsUseCase: CreateMeetingUseCase, FetchMyMeetingsUs
         MeetingDetail(meeting: try await execute(projectId: "", title: "", meetingTime: Date(), location: nil, description: nil),
                       recordings: [],
                       participants: [])
+    }
+
+    func execute(meetingId: String) async throws {
+        // Mock implementation - do nothing
     }
 }
 

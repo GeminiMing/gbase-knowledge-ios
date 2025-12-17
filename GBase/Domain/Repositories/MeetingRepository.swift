@@ -18,6 +18,8 @@ public protocol MeetingRepository {
                               pageSize: Int) async throws -> PagedMeetings
 
     func fetchMeetingDetail(meetingId: String) async throws -> MeetingDetail
+    
+    func deleteMeeting(meetingId: String) async throws
 }
 
 public struct PagedMeetings: Codable {

@@ -108,6 +108,28 @@ class RecorderViewModel: NSObject, ObservableObject {
         timer = nil
         isRecording = false
 
+        // Check if duration is less than 15 seconds
+        if duration < 15.0 {
+            // Delete the recording file
+            if let url = recordingURL {
+                try? FileManager.default.removeItem(at: url)
+            }
+            // Show error message
+            saveConfirmationMessage = NSLocalizedString("recorder.duration_too_short", comment: "")
+            showSaveConfirmation = true
+            // Auto-hide after 3 seconds
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                await MainActor.run {
+                    showSaveConfirmation = false
+                }
+            }
+            // Reset
+            duration = 0
+            recordingURL = nil
+            return
+        }
+
         // Send recording to iPhone
         if let url = recordingURL {
             await transferRecordingToiPhone(fileURL: url, duration: duration)

@@ -92,6 +92,7 @@
 "recorder.save_later" = "Later";
 "recorder.failed_to_start" = "Failed to start recording";
 "recorder.session_busy" = "Microphone is being used by another app. Please close other apps using the microphone and try again";
+"recorder.duration_too_short" = "Recording duration is too short (less than 15 seconds), automatically deleted";
 
 /* Upload Status */
 "upload_status.pending" = "Pending";
