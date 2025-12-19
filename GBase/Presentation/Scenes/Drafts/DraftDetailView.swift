@@ -162,7 +162,13 @@ final class DraftDetailViewModel: ObservableObject {
 
     @Published var projects: [ProjectOption] = []
     @Published var selectedProjectId: String?
-    @Published var customName: String = ""
+    @Published var customName: String = "" {
+        didSet {
+            if customName.count > 50 {
+                customName = String(customName.prefix(50))
+            }
+        }
+    }
     @Published var isBinding: Bool = false
     @Published var isUploading: Bool = false
     @Published var uploadProgress: Double = 0

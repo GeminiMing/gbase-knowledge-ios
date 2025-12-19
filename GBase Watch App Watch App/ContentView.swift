@@ -27,15 +27,15 @@ struct ContentView: View {
                 VStack {
                     Spacer()
                     Text(viewModel.saveConfirmationMessage)
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Color.green.opacity(0.9))
-                        .cornerRadius(20)
-                        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, 20)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.green.opacity(0.9))
+                    .cornerRadius(20)
+                    .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .padding(.bottom, 20)
                 }
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.showSaveConfirmation)
             }
@@ -100,7 +100,7 @@ struct IdleView: View {
                 }
             }
             .buttonStyle(.plain)
-            .handGestureShortcut(.primaryAction)
+            .compatibleHandGestureShortcut()
 
             // Hint text
             Text(NSLocalizedString("watch.tap_to_record", comment: ""))
@@ -183,7 +183,7 @@ struct RecordingView: View {
                 }
             }
             .buttonStyle(.plain)
-            .handGestureShortcut(.primaryAction)
+            .compatibleHandGestureShortcut()
 
             // Stop hint
             Text(NSLocalizedString("watch.tap_to_stop", comment: ""))
@@ -200,6 +200,18 @@ struct RecordingView: View {
     private func barHeight(for index: Int) -> CGFloat {
         let heights: [CGFloat] = [12, 24, 36, 32, 28, 36, 20, 16]
         return viewModel.isRecording ? heights[index] : 8
+    }
+}
+
+// MARK: - Compatibility Extensions
+extension View {
+    @ViewBuilder
+    func compatibleHandGestureShortcut() -> some View {
+        if #available(watchOS 11.0, *) {
+            self.handGestureShortcut(.primaryAction)
+        } else {
+            self
+        }
     }
 }
 

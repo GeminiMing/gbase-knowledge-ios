@@ -46,8 +46,38 @@ final class DraftsViewModel: ObservableObject {
             var validDrafts: [Recording] = []
             var invalidDraftIds: [String] = []
             
-            for draft in fetchedDrafts {
-                let fileExists = fileManager.fileExists(atPath: draft.localFilePath)
+            for var draft in fetchedDrafts {
+                var fileExists = fileManager.fileExists(atPath: draft.localFilePath)
+                
+                // Robustness fix: If file not found at absolute path, try to find it in Documents/Recordings
+                if !fileExists {
+                    if let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+                        let potentialPath = documentsPath.appendingPathComponent("Recordings").appendingPathComponent(draft.fileName).path
+                        if fileManager.fileExists(atPath: potentialPath) {
+                            Logger.debug("🔄 [DraftsViewModel] Recovered file path for \(draft.id). Old: \(draft.localFilePath), New: \(potentialPath)")
+                            // Update the draft object in memory (persisting to DB would be better but this fixes display)
+                            draft = Recording(
+                                id: draft.id,
+                                meetingId: draft.meetingId,
+                                projectId: draft.projectId,
+                                fileName: draft.fileName,
+                                customName: draft.customName,
+                                localFilePath: potentialPath, // Use recovered path
+                                fileSize: draft.fileSize,
+                                duration: draft.duration,
+                                contentHash: draft.contentHash,
+                                uploadStatus: draft.uploadStatus,
+                                uploadProgress: draft.uploadProgress,
+                                uploadId: draft.uploadId,
+                                createdAt: draft.createdAt,
+                                actualStartAt: draft.actualStartAt,
+                                actualEndAt: draft.actualEndAt
+                            )
+                            fileExists = true
+                        }
+                    }
+                }
+                
                 Logger.debug("📋 [DraftsViewModel] File exists check for \(draft.id): \(fileExists) at path: \(draft.localFilePath)")
                 
                 if fileExists {

@@ -124,15 +124,38 @@ extension WatchConnectivityService: WCSessionDelegate {
 
     public func session(_ session: WCSession, didReceive file: WCSessionFile) {
         print("📥 [iPhone] Received file from Watch: \(file.fileURL.lastPathComponent)")
-        print("📥 [iPhone] File metadata: \(file.metadata ?? [:])")
-        print("📥 [iPhone] File URL: \(file.fileURL)")
-        print("📥 [iPhone] File URL path: \(file.fileURL.path)")
+        
+        // CRITICAL: The system removes the file when this method returns.
+        // We MUST move/copy the file synchronously before returning.
+        // Do NOT use Task { } for the file operation.
+        
+        let metadata = file.metadata ?? [:]
+        print("📥 [iPhone] File metadata: \(metadata)")
+        
+        // Check duration immediately if possible
+        let duration = (metadata["duration"] as? TimeInterval) ?? 0
+        if duration < 15.0 {
+            print("⚠️ [iPhone] Recording duration too short (\(duration) seconds), ignoring file")
+            return
+        }
 
-        Task {
-            await handleReceivedFile(file)
+        // Extract filename
+        let fileName = (metadata["fileName"] as? String) ?? file.fileURL.lastPathComponent
+        
+        do {
+            // Synchronously save the file
+            let savedURL = try fileStorageService.saveRecordingFile(from: file.fileURL, fileName: fileName)
+            print("✅ [iPhone] File synchronously saved to: \(savedURL.path)")
+            
+            // Now process the saved file asynchronously
+            Task {
+                await processSavedFile(url: savedURL, metadata: metadata)
+            }
+        } catch {
+            print("❌ [iPhone] Failed to save file synchronously: \(error)")
         }
     }
-
+    
     // MARK: - Handle Received Data
 
     private func handleReceivedMessage(_ message: [String: Any]) {
@@ -151,79 +174,46 @@ extension WatchConnectivityService: WCSessionDelegate {
         }
     }
 
-    private func handleReceivedFile(_ file: WCSessionFile) async {
-        let metadata = file.metadata ?? [:]
-
-        print("📥 [iPhone] Processing received file metadata: \(metadata)")
-        print("📥 [iPhone] File URL: \(file.fileURL)")
-        print("📥 [iPhone] File URL path: \(file.fileURL.path)")
-
-        // 检查文件是否实际存在
-        guard FileManager.default.fileExists(atPath: file.fileURL.path) else {
-            print("❌ [iPhone] Received file does not exist at path: \(file.fileURL.path)")
+    private func processSavedFile(url: URL, metadata: [String: Any]) async {
+        print("📥 [iPhone] Processing saved file: \(url.lastPathComponent)")
+        
+        // Check if file exists (it should, we just saved it)
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("❌ [iPhone] Saved file missing at path: \(url.path)")
             return
         }
 
-        // Extract metadata with fallback values
-        let fileName = (metadata["fileName"] as? String) ?? file.fileURL.lastPathComponent
         let duration = (metadata["duration"] as? TimeInterval) ?? 0
         let timestamp = (metadata["timestamp"] as? TimeInterval) ?? Date().timeIntervalSince1970
 
-        // Check if duration is less than 15 seconds
-        if duration < 15.0 {
-            print("⚠️ [iPhone] Recording duration too short (\(duration) seconds), deleting file")
-            // Delete the received file
-            try? FileManager.default.removeItem(at: file.fileURL)
-            // Note: We can't show an alert here as this is a background service
-            // The Watch app should have already shown the error message
-            return
+        // Get file size
+        var fileSize: Int64 = 0
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+            fileSize = (attributes[.size] as? Int64) ?? 0
+        } catch {
+            print("⚠️ [iPhone] Could not get file size: \(error)")
+        }
+        
+        if let metadataSize = metadata["fileSize"] as? Int, fileSize == 0 {
+             fileSize = Int64(metadataSize)
         }
 
-        // Try to get file size from metadata, or from actual file
-        var fileSize: Int
-        if let metadataSize = metadata["fileSize"] as? Int {
-            fileSize = metadataSize
-        } else {
-            // Fallback: get actual file size
-            do {
-                let attributes = try FileManager.default.attributesOfItem(atPath: file.fileURL.path)
-                fileSize = (attributes[.size] as? Int) ?? 0
-            } catch {
-                print("⚠️ [iPhone] Could not get file size: \(error)")
-                fileSize = 0
-            }
-        }
-
-        print("📥 [iPhone] Parsed metadata - fileName: \(fileName), duration: \(duration), timestamp: \(timestamp), fileSize: \(fileSize)")
+        print("📥 [iPhone] Creating recording entry - Duration: \(duration), Size: \(fileSize)")
 
         do {
-            // Move file to app's documents directory
-            let destinationURL = try fileStorageService.saveRecordingFile(from: file.fileURL, fileName: fileName)
-            print("✅ [iPhone] File saved to: \(destinationURL.path)")
-
-            // 验证目标文件是否存在
-            guard FileManager.default.fileExists(atPath: destinationURL.path) else {
-                print("❌ [iPhone] File was not saved successfully to: \(destinationURL.path)")
-                return
-            }
-
-            // 再次验证文件大小
-            let savedAttributes = try FileManager.default.attributesOfItem(atPath: destinationURL.path)
-            let savedFileSize = (savedAttributes[.size] as? Int) ?? 0
-            print("✅ [iPhone] Saved file size: \(savedFileSize) bytes")
-
             // Create Recording entity as draft
             let watchRecordingName = NSLocalizedString(LocalizedStringKey.watchRecordingDefaultName, comment: "")
             let recording = Recording(
                 id: UUID().uuidString,
                 meetingId: nil,  // Draft - no meeting
                 projectId: nil,  // Draft - no project
-                fileName: destinationURL.lastPathComponent,  // 使用实际保存的文件名
+                fileName: url.lastPathComponent,
                 customName: "\(watchRecordingName) \(formatDate(Date(timeIntervalSince1970: timestamp)))",
-                localFilePath: destinationURL.path,  // 使用实际保存的文件路径
-                fileSize: Int64(savedFileSize > 0 ? savedFileSize : fileSize),
+                localFilePath: url.path,
+                fileSize: fileSize,
                 duration: duration,
-                contentHash: nil,  // Will be computed later if needed
+                contentHash: nil,
                 uploadStatus: .pending,
                 uploadProgress: 0,
                 uploadId: nil,
@@ -232,42 +222,25 @@ extension WatchConnectivityService: WCSessionDelegate {
                 actualEndAt: Date(timeIntervalSince1970: timestamp + duration)
             )
 
-            print("📥 [iPhone] Creating recording with ID: \(recording.id), fileName: \(recording.fileName), filePath: \(recording.localFilePath)")
+            print("📥 [iPhone] Saving recording to database: \(recording.id)")
 
             // Save to local store
             try recordingLocalStore.upsert(recording)
-            print("✅ [iPhone] Recording saved to database: \(recording.id)")
-            print("✅ [iPhone] Recording file path: \(destinationURL.path)")
-            print("✅ [iPhone] Recording custom name: \(recording.customName ?? "nil")")
+            print("✅ [iPhone] Recording saved to database")
 
             // Update published property and send notification to refresh UI
             await MainActor.run {
                 self.lastReceivedRecording = recording
                 // Notify DraftsView to refresh
-                print("📢 [iPhone] Posting RefreshRecordings notification for Watch recording")
+                print("📢 [iPhone] Posting RefreshRecordings notification")
                 NotificationCenter.default.post(name: NSNotification.Name("RefreshRecordings"), object: nil)
             }
 
             // Send confirmation back to Watch
             sendDraftConfirmation(recordingId: recording.id)
-
-            print("✅ [iPhone] Recording saved as draft: \(recording.id)")
             
-            // Verify the recording was actually saved by fetching it back
-            do {
-                let savedRecordings = try recordingLocalStore.fetch(projectId: nil, status: nil)
-                if let savedRecording = savedRecordings.first(where: { $0.id == recording.id }) {
-                    print("✅ [iPhone] Verified: Recording exists in database with ID: \(savedRecording.id)")
-                } else {
-                    print("⚠️ [iPhone] Warning: Recording was not found in database after save")
-                }
-            } catch {
-                print("⚠️ [iPhone] Could not verify recording save: \(error)")
-            }
-
         } catch {
-            print("❌ Failed to save recording from Watch: \(error)")
-            print("❌ Error details: \(error.localizedDescription)")
+            print("❌ Failed to process saved recording: \(error)")
         }
     }
 

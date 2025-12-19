@@ -18,7 +18,13 @@ public final class RecorderViewModel: NSObject, ObservableObject {
     @Published var projectOptions: [ProjectOption] = []
     @Published var selectedProjectId: String?
     @Published var selectedProjectTitle: String?
-    @Published var meetingTitle: String = ""
+    @Published var meetingTitle: String = "" {
+        didSet {
+            if meetingTitle.count > 50 {
+                meetingTitle = String(meetingTitle.prefix(50))
+            }
+        }
+    }
     @Published var errorMessage: String?
     @Published private(set) var preparedMeeting: Meeting?
     @Published var localRecordings: [Recording] = []
