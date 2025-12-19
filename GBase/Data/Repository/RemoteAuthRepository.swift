@@ -11,10 +11,12 @@ public final class RemoteAuthRepository: AuthRepository {
 
     public func login(email: String, password: String) async throws -> (AuthSession, User, UserProfile, UserCompany, Bool) {
         let request = LoginRequestDTO(email: email, password: password)
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentAuthBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL
         let endpoint = Endpoint(path: "/user/login/password",
                                 method: .post,
                                 requiresAuth: false,
-                                baseURLOverride: authBaseURL)
+                                baseURLOverride: currentAuthBaseURL)
         let response = try await client.send(endpoint,
                                              body: request,
                                              responseType: LoginResponseDTO.self)
@@ -40,10 +42,12 @@ public final class RemoteAuthRepository: AuthRepository {
 
     public func refreshToken(refreshToken: String) async throws -> AuthSession {
         let request = RefreshTokenRequestDTO(refreshToken: refreshToken)
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentAuthBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL
         let endpoint = Endpoint(path: "/user/token/refresh",
                                 method: .post,
                                 requiresAuth: false,
-                                baseURLOverride: authBaseURL)
+                                baseURLOverride: currentAuthBaseURL)
         let response = try await client.send(endpoint,
                                              body: request,
                                              responseType: RefreshTokenResponseDTO.self)
@@ -56,9 +60,11 @@ public final class RemoteAuthRepository: AuthRepository {
     }
 
     public func fetchCurrentUser() async throws -> (User, UserProfile, UserCompany, [String], Bool) {
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentAuthBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL
         let endpoint = Endpoint(path: "/user/my",
                                 method: .get,
-                                baseURLOverride: authBaseURL)
+                                baseURLOverride: currentAuthBaseURL)
         let response = try await client.send(endpoint,
                                              responseType: CurrentUserResponseDTO.self)
 

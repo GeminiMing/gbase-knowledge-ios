@@ -3,7 +3,11 @@ import SwiftUI
 struct LoginView: View {
     @Environment(\.diContainer) private var container
     @StateObject private var viewModel = LoginViewModel()
+    @StateObject private var environmentManager = EnvironmentManager.shared
     @State private var showPassword = false
+    @State private var logoTapCount = 0
+    @State private var lastTapTime: Date?
+    @State private var showEnvironmentPicker = false
 
     var body: some View {
         ZStack {
@@ -20,6 +24,9 @@ struct LoginView: View {
                             .frame(width: 80, height: 80)
                             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                             .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
+                            .onTapGesture {
+                                handleLogoTap()
+                            }
 
                         Text("GBase")
                             .font(.system(.title2, weight: .bold))
@@ -168,6 +175,78 @@ struct LoginView: View {
         }
         .onAppear {
             viewModel.configure(container: container)
+        }
+        .sheet(isPresented: $showEnvironmentPicker) {
+            EnvironmentPickerView()
+        }
+    }
+    
+    private func handleLogoTap() {
+        let now = Date()
+        
+        // 检查是否在 2 秒内连续点击
+        if let lastTime = lastTapTime, now.timeIntervalSince(lastTime) < 2.0 {
+            logoTapCount += 1
+        } else {
+            logoTapCount = 1
+        }
+        
+        lastTapTime = now
+        
+        // 连续点击 5 次显示环境选择器
+        if logoTapCount >= 5 {
+            logoTapCount = 0
+            lastTapTime = nil
+            showEnvironmentPicker = true
+        }
+    }
+}
+
+// 环境选择器视图
+struct EnvironmentPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var environmentManager = EnvironmentManager.shared
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(header: Text("选择 API 环境")) {
+                    ForEach(environmentManager.availableEnvironments, id: \.rawValue) { environment in
+                        Button(action: {
+                            environmentManager.switchEnvironment(environment)
+                            dismiss()
+                        }) {
+                            HStack {
+                                Text(environment.displayName)
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                if environmentManager.currentEnvironment == environment {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.accentColor)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                Section {
+                    Text("当前环境: \(environmentManager.currentEnvironment.displayName)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("切换环境后，请重新登录或重启应用")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationTitle("环境设置")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

@@ -19,7 +19,9 @@ public class CompanyAPIService {
     /// 获取当前默认公司
     /// GET /user/my/company/default
     func getMyCompanyDefault() async throws -> DefaultCompanyResponse {
-        let url = URL(string: "\(baseURL)/user/my/company/default")!
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL.absoluteString
+        let url = URL(string: "\(currentBaseURL)/user/my/company/default")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Gbase-Knowledge-Mobile-App", forHTTPHeaderField: "User-Agent")
@@ -47,7 +49,9 @@ public class CompanyAPIService {
     /// 获取用户的所有公司列表
     /// GET /user/my/companies
     func getMyCompaniesList() async throws -> CompaniesListResponse {
-        let url = URL(string: "\(baseURL)/user/my/companies")!
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL.absoluteString
+        let url = URL(string: "\(currentBaseURL)/user/my/companies")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Gbase-Knowledge-Mobile-App", forHTTPHeaderField: "User-Agent")
@@ -75,7 +79,9 @@ public class CompanyAPIService {
     /// 切换公司
     /// POST /user/my/company/default
     func switchMyCompany(companyId: String) async throws -> SwitchCompanyResponse {
-        let url = URL(string: "\(baseURL)/user/my/company/default")!
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL.absoluteString
+        let url = URL(string: "\(currentBaseURL)/user/my/company/default")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Gbase-Knowledge-Mobile-App", forHTTPHeaderField: "User-Agent")
@@ -129,7 +135,9 @@ public class CompanyAPIService {
     /// 获取用户权限
     /// GET /user/{companyId}/authority
     func getUserAuthority(companyId: String) async throws -> UserAuthorityResponse {
-        let url = URL(string: "\(baseURL)/user/company/\(companyId)/my/authority/")!
+        // 使用 EnvironmentManager 动态获取当前环境的 authBaseURL
+        let currentBaseURL = EnvironmentManager.shared.currentEnvironment.authBaseURL.absoluteString
+        let url = URL(string: "\(currentBaseURL)/user/company/\(companyId)/my/authority/")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Gbase-Knowledge-Mobile-App", forHTTPHeaderField: "User-Agent")

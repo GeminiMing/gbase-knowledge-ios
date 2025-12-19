@@ -8,7 +8,7 @@ public struct APIConfiguration: Sendable {
         public var baseURL: URL {
             switch self {
             case .development:
-                return URL(string: "https://hub.gbase.ai/core-api")!
+                return URL(string: "https://hub-dev.gbase.ai/core-api")!
             case .production:
                 return URL(string: "https://hub.gbase.ai/core-api")!
             }
@@ -17,7 +17,7 @@ public struct APIConfiguration: Sendable {
         public var authBaseURL: URL {
             switch self {
             case .development:
-                return URL(string: "https://hub.gbase.ai/ogs-api")!
+                return URL(string: "https://hub-dev.gbase.ai/ogs-api")!
             case .production:
                 return URL(string: "https://hub.gbase.ai/ogs-api")!
             }
@@ -26,9 +26,18 @@ public struct APIConfiguration: Sendable {
         public var hubBaseURL: URL {
             switch self {
             case .development:
-                return URL(string: "https://hub.gbase.ai")!
+                return URL(string: "https://hub-dev.gbase.ai")!
             case .production:
                 return URL(string: "https://hub.gbase.ai")!
+            }
+        }
+        
+        public var displayName: String {
+            switch self {
+            case .development:
+                return "开发环境"
+            case .production:
+                return "生产环境"
             }
         }
     }

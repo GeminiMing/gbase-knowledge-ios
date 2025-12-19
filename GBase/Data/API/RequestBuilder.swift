@@ -19,7 +19,9 @@ public struct RequestBuilder {
     public func makeRequest(endpoint: Endpoint,
                             body: Encodable? = nil,
                             headers: [String: String] = [:]) async throws -> URLRequest {
-        let baseURL = endpoint.baseURLOverride ?? config.environment.baseURL
+        // 优先使用 EnvironmentManager 中的环境，支持动态切换
+        let currentEnvironment = EnvironmentManager.shared.currentEnvironment
+        let baseURL = endpoint.baseURLOverride ?? currentEnvironment.baseURL
         var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false)
         if !endpoint.queryItems.isEmpty {
             components?.queryItems = endpoint.queryItems
