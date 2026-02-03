@@ -113,7 +113,7 @@ public final class AudioRecorderService: NSObject {
 
     public func stopRecording() {
         // 获取最终时长
-        let finalDuration = recorder?.currentTime ?? 0
+        let _ = recorder?.currentTime ?? 0
 
         recorder?.stop()
         recorder = nil
@@ -154,9 +154,12 @@ public final class AudioRecorderService: NSObject {
         // .playAndRecord + UIBackgroundModes: audio 可以实现后台录音
         let options: AVAudioSession.CategoryOptions = [
             .defaultToSpeaker,      // 默认使用扬声器
-            .allowBluetooth,        // 允许蓝牙设备
-            .allowBluetoothA2DP     // 允许高质量蓝牙音频
+            .allowBluetoothA2DP,    // 允许高质量蓝牙音频
+            .allowAirPlay           // 允许 AirPlay
         ]
+        // 注意：.allowBluetooth (HFP) 会导致音质变差，尽量使用 A2DP
+        // 如果必须支持蓝牙麦克风，可以取消注释下面这行：
+        // .allowBluetooth
 
         // 配置音频会话 - 使用 .default mode 最稳定
         do {
@@ -316,7 +319,7 @@ public final class AudioRecorderService: NSObject {
                 shouldResume = true
             }
 
-            if shouldResume, let recorder = recorder {
+            if shouldResume, recorder != nil {
                 // 使用重试机制恢复录音
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                     self?.attemptResumeRecording(retryCount: 3)

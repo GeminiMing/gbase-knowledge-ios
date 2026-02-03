@@ -42,7 +42,10 @@ public struct RequestBuilder {
         }
 
         if endpoint.requiresAuth, let session = try await tokenProvider() {
-            request.setValue("\(session.tokenType) \(session.accessToken)", forHTTPHeaderField: "Authorization")
+            let authHeader = "\(session.tokenType) \(session.accessToken)"
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+            print("🔑 [RequestBuilder] Access Token: \(session.accessToken)")
+            print("🔑 [RequestBuilder] Authorization Header: \(authHeader)")
         }
 
         if let body {

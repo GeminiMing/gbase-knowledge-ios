@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import AVFoundation
 
 @MainActor
 final class DraftsViewModel: ObservableObject {
@@ -13,6 +14,10 @@ final class DraftsViewModel: ObservableObject {
     @Published var shouldDeleteDraft: Bool = false  // Flag to prevent clearing draftToDelete during deletion
 
     private var container: DIContainer?
+    
+    // Constants for file import
+    private let maxImportFileSize: Int64 = 1 * 1024 * 1024 * 1024 // 1GB
+    private let allowedImportExtensions = ["wav", "webm", "mp3", "mp4", "m4a"]
 
     init(container: DIContainer? = nil) {
         self.container = container
@@ -225,6 +230,100 @@ final class DraftsViewModel: ObservableObject {
             return String(format: "%.1f MB", mb)
         } else {
             return String(format: "%.1f KB", kb)
+        }
+    }
+    
+    // Import audio file from local storage
+    func importAudioFile(url: URL) async {
+        guard let container else {
+            errorMessage = LocalizedStringKey.profileDependencyNotInjected.localized
+            return
+        }
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        let gotAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if gotAccess {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        
+        do {
+            // Check file size limit
+            let resources = try url.resourceValues(forKeys: [.fileSizeKey])
+            if let fileSize = resources.fileSize, Int64(fileSize) > maxImportFileSize {
+                errorMessage = LocalizedStringKey.recorderImportFileTooLarge.localized
+                return
+            }
+
+            // Check file format
+            let fileExtension = url.pathExtension.lowercased()
+            if !allowedImportExtensions.contains(fileExtension) {
+                errorMessage = LocalizedStringKey.recorderImportFileFormatError.localized
+                return
+            }
+
+            // 1. Prepare target path
+            let now = Date()
+            
+            // Create a unique file name for the imported file
+            let originalExtension = url.pathExtension
+            let fileName = "Imported-\(Int(now.timeIntervalSince1970))-\(UUID().uuidString.prefix(8)).\(originalExtension.isEmpty ? "m4a" : originalExtension)"
+            
+            // Get documents directory directly
+            let destinationURL = try container.fileStorageService.makeRecordingURL(timestamp: now, meetingId: "draft")
+                .deletingLastPathComponent()
+                .appendingPathComponent(fileName)
+            
+            Logger.debug("🎤 [DraftsViewModel] Importing file from: \(url.path) to: \(destinationURL.path)")
+            
+            // 2. Copy file
+            try FileManager.default.copyItem(at: url, to: destinationURL)
+            
+            // 3. Get file info
+            let fileSize = try container.fileStorageService.fileSize(at: destinationURL)
+            
+            // Calculate duration
+            let asset = AVURLAsset(url: destinationURL)
+            let duration: Double
+            if #available(iOS 16.0, *) {
+                let cmTime = try await asset.load(.duration)
+                duration = Double(CMTimeGetSeconds(cmTime))
+            } else {
+                duration = Double(CMTimeGetSeconds(asset.duration))
+            }
+            
+            // 4. Create Recording object
+            let recording = Recording(
+                id: UUID().uuidString,
+                meetingId: nil, // Draft has no meeting ID initially
+                projectId: nil, // Draft has no project ID
+                fileName: fileName,
+                customName: url.deletingPathExtension().lastPathComponent, // Use original filename as custom name
+                localFilePath: destinationURL.path,
+                fileSize: fileSize,
+                duration: duration,
+                contentHash: nil,
+                uploadStatus: .pending,
+                uploadProgress: 0,
+                uploadId: nil,
+                createdAt: Date(),
+                actualStartAt: now,
+                actualEndAt: now.addingTimeInterval(duration)
+            )
+            
+            // 5. Save to local store
+            try container.recordingLocalStore.upsert(recording)
+            Logger.debug("✅ [DraftsViewModel] Imported recording saved: \(recording.id)")
+            
+            // 6. Reload drafts
+            await loadDrafts()
+            
+        } catch {
+            Logger.error("❌ [DraftsViewModel] Import failed: \(error)")
+            errorMessage = error.localizedDescription
         }
     }
 }

@@ -56,6 +56,10 @@ public final class RecorderViewModel: NSObject, ObservableObject {
     private var recordingStartAt: Date?
     private let waveformCapacity = 24
 
+    // Constants for file import
+    private let maxImportFileSize: Int64 = 1 * 1024 * 1024 * 1024 // 1GB
+    private let allowedImportExtensions = ["wav", "webm", "mp3", "mp4", "m4a"]
+
     override init() {
         waveformSamples = Array(repeating: 0.1, count: waveformCapacity)
         super.init()
@@ -592,6 +596,122 @@ public final class RecorderViewModel: NSObject, ObservableObject {
             print("❌ [Recorder] 保存到项目失败: \(error)")
             errorMessage = error.localizedDescription
             // 保持 showSaveToProjectAlert = true,这样用户可以看到错误并重试
+        }
+    }
+    
+    // Import audio file from local storage
+    func importAudioFile(url: URL) async {
+        guard let container else {
+            errorMessage = LocalizedStringKey.recorderDependencyNotInjected.localized
+            return
+        }
+        
+        status = .processing
+        
+        let gotAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if gotAccess {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        
+        do {
+            // Check file size limit
+            let resources = try url.resourceValues(forKeys: [.fileSizeKey])
+            if let fileSize = resources.fileSize, Int64(fileSize) > maxImportFileSize {
+                errorMessage = LocalizedStringKey.recorderImportFileTooLarge.localized
+                status = .idle
+                return
+            }
+
+            // Check file format
+            let fileExtension = url.pathExtension.lowercased()
+            if !allowedImportExtensions.contains(fileExtension) {
+                errorMessage = LocalizedStringKey.recorderImportFileFormatError.localized
+                status = .idle
+                return
+            }
+
+            // 1. Prepare target path
+            let now = Date()
+            let meetingId = isDraftMode ? "draft" : preparedMeeting?.id ?? "unknown"
+            
+            // Create a unique file name for the imported file
+            // Use original extension if possible
+            let originalExtension = url.pathExtension
+            let fileName = "Imported-\(Int(now.timeIntervalSince1970))-\(UUID().uuidString.prefix(8)).\(originalExtension.isEmpty ? "m4a" : originalExtension)"
+            
+            // Get documents directory directly since makeRecordingURL might imply specific naming convention
+            // But better to use fileStorageService if possible to keep files organized
+            // Let's assume makeRecordingURL returns a URL in the app's documents/recordings folder
+            // We'll use a temporary approach here to ensure we put it where other recordings are
+            let destinationURL = try container.fileStorageService.makeRecordingURL(timestamp: now, meetingId: meetingId)
+                .deletingLastPathComponent()
+                .appendingPathComponent(fileName)
+            
+            print("🎤 [RecorderViewModel] Importing file from: \(url.path) to: \(destinationURL.path)")
+            
+            // 2. Copy file
+            try FileManager.default.copyItem(at: url, to: destinationURL)
+            
+            // 3. Get file info
+            let fileSize = try container.fileStorageService.fileSize(at: destinationURL)
+            let duration = try await durationOfFile(at: destinationURL)
+            
+            // 4. Ensure Meeting exists (Non-Draft Mode)
+            if !isDraftMode && preparedMeeting == nil {
+                 if let projectId = selectedProjectId, let projectTitle = selectedProjectTitle {
+                    let meeting = try await container.createMeetingUseCase.execute(
+                        projectId: projectId,
+                        title: projectTitle.isEmpty ? LocalizedStringKey.quickRecorderDefaultName.localized : projectTitle,
+                        meetingTime: Date(),
+                        location: nil,
+                        description: nil
+                    )
+                    preparedMeeting = meeting
+                    meetingTitle = meeting.title
+                 } else {
+                     errorMessage = LocalizedStringKey.recorderMeetingNotPrepared.localized
+                     status = .idle
+                     return
+                 }
+            }
+            
+            // 5. Create Recording object
+            let recording = Recording(
+                id: UUID().uuidString,
+                meetingId: isDraftMode ? nil : preparedMeeting?.id,
+                projectId: isDraftMode ? nil : preparedMeeting?.projectId,
+                fileName: fileName,
+                customName: url.deletingPathExtension().lastPathComponent, // Use original filename as custom name
+                localFilePath: destinationURL.path,
+                fileSize: fileSize,
+                duration: duration,
+                contentHash: nil,
+                uploadStatus: .pending,
+                uploadProgress: 0,
+                uploadId: nil,
+                createdAt: Date(),
+                actualStartAt: now,
+                actualEndAt: now.addingTimeInterval(duration)
+            )
+            
+            // 6. Save and Upload
+            try container.recordingLocalStore.upsert(recording)
+            await loadLocalRecordings()
+            
+            if !isDraftMode {
+                try await upload(recording: recording)
+            } else {
+                 completedDraftRecordingId = recording.id
+                 status = .idle
+                 showSaveToProjectAlert = true
+            }
+            
+        } catch {
+            print("❌ [RecorderViewModel] Import failed: \(error)")
+            errorMessage = error.localizedDescription
+            status = .idle
         }
     }
     

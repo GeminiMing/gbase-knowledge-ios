@@ -13,8 +13,8 @@ public class CompanyManager: ObservableObject {
 
     // MARK: - Dependencies
 
-    private let apiService: CompanyAPIService
-    private let tokenStore: TokenStore
+    nonisolated private let apiService: CompanyAPIService
+    nonisolated private let tokenStore: TokenStore
 
     // MARK: - Initialization
 

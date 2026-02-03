@@ -93,6 +93,9 @@
 "recorder.failed_to_start" = "Failed to start recording";
 "recorder.session_busy" = "Microphone is being used by another app. Please close other apps using the microphone and try again";
 "recorder.duration_too_short" = "Recording duration is too short (less than 15 seconds), automatically deleted";
+"recorder.import_audio" = "Import Audio";
+"recorder.import_file_too_large" = "Import file size cannot exceed 1GB";
+"recorder.import_file_format_error" = "Unsupported file format. Only .wav, .webm, .mp3, .mp4, .m4a are supported";
 
 /* Upload Status */
 "upload_status.pending" = "Pending";

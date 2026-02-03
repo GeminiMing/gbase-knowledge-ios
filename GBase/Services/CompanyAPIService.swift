@@ -173,8 +173,11 @@ extension URLRequest {
     mutating func addAuthHeaders(tokenStore: TokenStore) async throws {
         // 从 TokenStore (Keychain) 获取 token
         if let session = try? await tokenStore.currentSession() {
-            setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
-            print("🔑 已添加 Authorization 请求头 (Token 长度: \(session.accessToken.count))")
+            let authHeader = "Bearer \(session.accessToken)"
+            setValue(authHeader, forHTTPHeaderField: "Authorization")
+            print("🔑 [CompanyAPIService] Access Token: \(session.accessToken)")
+            print("🔑 [CompanyAPIService] Authorization Header: \(authHeader)")
+            print("🔑 [CompanyAPIService] Token 长度: \(session.accessToken.count)")
         } else {
             print("⚠️ 警告: 未找到 session token")
             throw CompanyAPIError.invalidResponse

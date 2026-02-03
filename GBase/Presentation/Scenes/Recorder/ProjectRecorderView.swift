@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ProjectRecorderView: View {
     @Environment(\.diContainer) private var container
@@ -9,6 +10,7 @@ struct ProjectRecorderView: View {
     let meeting: Meeting
 
     @State private var hasInitialized = false
+    @State private var isImporterPresented = false
 
     private var viewModel: RecorderViewModel? {
         appState.recorderViewModel
@@ -176,11 +178,45 @@ struct ProjectRecorderView: View {
             }
             .disabled(isProcessing || viewModel.preparedMeeting == nil)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isRecording)
+
+            // 导入按钮
+            if !isRecording {
+                Button {
+                    isImporterPresented = true
+                } label: {
+                    Label(LocalizedStringKey.recorderImportAudio.localized, systemImage: "square.and.arrow.down")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 8)
+                .disabled(isProcessing || viewModel.preparedMeeting == nil)
+            }
         }
         .padding(.vertical, 20)
         .frame(maxWidth: .infinity)
         .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .fileImporter(
+            isPresented: $isImporterPresented,
+            allowedContentTypes: [
+                UTType.wav,
+                UTType.mp3,
+                UTType.mpeg4,
+                UTType.mpeg4Audio,
+                UTType(filenameExtension: "webm") ?? .audio
+            ],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                Task {
+                    await viewModel.importAudioFile(url: url)
+                }
+            case .failure(let error):
+                print("Import failed: \(error.localizedDescription)")
+            }
+        }
     }
 
     private func toggleRecording(viewModel: RecorderViewModel) {

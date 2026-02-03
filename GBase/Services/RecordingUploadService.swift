@@ -12,21 +12,15 @@ public protocol RecordingUploadServiceType {
 }
 
 public final class RecordingUploadService: RecordingUploadServiceType {
-    private let applyUseCase: ApplyRecordingUploadUseCase
-    private let finishUseCase: FinishRecordingUploadUseCase
     private let fileStorageService: FileStorageService
     private let session: URLSession
     private let config: APIConfiguration
     private let tokenProvider: () async throws -> AuthSession?
 
-    public init(applyUseCase: ApplyRecordingUploadUseCase,
-                finishUseCase: FinishRecordingUploadUseCase,
-                fileStorageService: FileStorageService,
+    public init(fileStorageService: FileStorageService,
                 config: APIConfiguration,
                 tokenProvider: @escaping () async throws -> AuthSession?,
                 session: URLSession = .shared) {
-        self.applyUseCase = applyUseCase
-        self.finishUseCase = finishUseCase
         self.fileStorageService = fileStorageService
         self.config = config
         self.tokenProvider = tokenProvider
@@ -74,7 +68,8 @@ public final class RecordingUploadService: RecordingUploadServiceType {
         
         // Add file
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        let fileName = fileURL.lastPathComponent
+        // Use the custom name for the filename parameter if available, otherwise use fileURL.lastPathComponent
+        let fileName = customName?.isEmpty == false ? (customName! + "." + fileURL.pathExtension) : fileURL.lastPathComponent
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
         body.append(fileData)
@@ -84,7 +79,9 @@ public final class RecordingUploadService: RecordingUploadServiceType {
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         
         // Create request
-        let baseURL = config.environment.baseURL
+        // 使用 EnvironmentManager 动态获取当前环境的 baseURL，支持环境切换
+        let currentEnvironment = EnvironmentManager.shared.currentEnvironment
+        let baseURL = currentEnvironment.baseURL
         guard let url = URL(string: baseURL.absoluteString + "/meeting/recording/fileUpload") else {
             throw APIError.invalidURL
         }
@@ -107,8 +104,32 @@ public final class RecordingUploadService: RecordingUploadServiceType {
         
         // Add auth token
         if let session = try await tokenProvider() {
-            request.setValue("\(session.tokenType) \(session.accessToken)", forHTTPHeaderField: "Authorization")
+            let authHeader = "\(session.tokenType) \(session.accessToken)"
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+            print("🔑 [RecordingUploadService] Access Token: \(session.accessToken)")
+            print("🔑 [RecordingUploadService] Authorization Header: \(authHeader)")
         }
+        
+        // 输出完整的请求头信息
+        print("📤 [RecordingUploadService] ========== 开始上传录音 ==========")
+        print("📤 [RecordingUploadService] URL: \(url.absoluteString)")
+        print("📤 [RecordingUploadService] HTTP Method: \(request.httpMethod ?? "未知")")
+        print("📤 [RecordingUploadService] 请求头:")
+        if let allHeaders = request.allHTTPHeaderFields {
+            for (key, value) in allHeaders.sorted(by: { $0.key < $1.key }) {
+                if key == "Authorization" {
+                    print("📤 [RecordingUploadService]   \(key): \(value)")
+                } else {
+                    print("📤 [RecordingUploadService]   \(key): \(value)")
+                }
+            }
+        }
+        print("📤 [RecordingUploadService] 文件大小: \(body.count) 字节")
+        print("📤 [RecordingUploadService] 文件名: \(fileName)")
+        print("📤 [RecordingUploadService] Meeting ID: \(meetingIdInt)")
+        print("📤 [RecordingUploadService] File Type: \(fileType)")
+        print("📤 [RecordingUploadService] Source Platform Info: \(Bundle.sourcePlatformInfo)")
+        print("📤 [RecordingUploadService] ========================================")
         
         // Create URLSession with delegate for progress tracking
         // Use the same configuration as the provided session

@@ -15,8 +15,6 @@ public struct DIContainer {
     public let fetchProjectMeetingsUseCase: FetchProjectMeetingsUseCase
     public let fetchMeetingDetailUseCase: FetchMeetingDetailUseCase
     public let deleteMeetingUseCase: DeleteMeetingUseCase
-    public let applyRecordingUploadUseCase: ApplyRecordingUploadUseCase
-    public let finishRecordingUploadUseCase: FinishRecordingUploadUseCase
 
     // Draft-related use cases
     public let fetchDraftsUseCase: FetchDraftsUseCase
@@ -47,8 +45,6 @@ public struct DIContainer {
                 fetchProjectMeetingsUseCase: FetchProjectMeetingsUseCase,
                 fetchMeetingDetailUseCase: FetchMeetingDetailUseCase,
                 deleteMeetingUseCase: DeleteMeetingUseCase,
-                applyRecordingUploadUseCase: ApplyRecordingUploadUseCase,
-                finishRecordingUploadUseCase: FinishRecordingUploadUseCase,
                 fetchDraftsUseCase: FetchDraftsUseCase,
                 bindDraftToProjectUseCase: BindDraftToProjectUseCase,
                 updateDraftNameUseCase: UpdateDraftNameUseCase,
@@ -75,8 +71,6 @@ public struct DIContainer {
         self.fetchProjectMeetingsUseCase = fetchProjectMeetingsUseCase
         self.fetchMeetingDetailUseCase = fetchMeetingDetailUseCase
         self.deleteMeetingUseCase = deleteMeetingUseCase
-        self.applyRecordingUploadUseCase = applyRecordingUploadUseCase
-        self.finishRecordingUploadUseCase = finishRecordingUploadUseCase
         self.fetchDraftsUseCase = fetchDraftsUseCase
         self.bindDraftToProjectUseCase = bindDraftToProjectUseCase
         self.updateDraftNameUseCase = updateDraftNameUseCase
@@ -135,8 +129,6 @@ public struct DIContainer {
         let fetchProjectMeetingsUseCase = DefaultFetchProjectMeetingsUseCase(repository: meetingRepository)
         let fetchMeetingDetailUseCase = DefaultFetchMeetingDetailUseCase(repository: meetingRepository)
         let deleteMeetingUseCase = DefaultDeleteMeetingUseCase(repository: meetingRepository)
-        let applyRecordingUploadUseCase = DefaultApplyRecordingUploadUseCase(repository: recordingRepository)
-        let finishRecordingUploadUseCase = DefaultFinishRecordingUploadUseCase(repository: recordingRepository)
 
         unauthorizedRelay.register {
             guard let session = try? await tokenStore.currentSession() else {
@@ -172,9 +164,7 @@ public struct DIContainer {
         let deleteDraftUseCase = DefaultDeleteDraftUseCase(localStore: recordingLocalStore, fileStorage: fileStorageService)
         let audioRecorderService = AudioRecorderService()
         let audioPlayerService = AudioPlayerService()
-        let recordingUploadService = RecordingUploadService(applyUseCase: applyRecordingUploadUseCase,
-                                                            finishUseCase: finishRecordingUploadUseCase,
-                                                            fileStorageService: fileStorageService,
+        let recordingUploadService = RecordingUploadService(fileStorageService: fileStorageService,
                                                             config: config,
                                                             tokenProvider: tokenProvider)
 
@@ -200,8 +190,6 @@ public struct DIContainer {
                            fetchProjectMeetingsUseCase: fetchProjectMeetingsUseCase,
                            fetchMeetingDetailUseCase: fetchMeetingDetailUseCase,
                            deleteMeetingUseCase: deleteMeetingUseCase,
-                           applyRecordingUploadUseCase: applyRecordingUploadUseCase,
-                           finishRecordingUploadUseCase: finishRecordingUploadUseCase,
                            fetchDraftsUseCase: fetchDraftsUseCase,
                            bindDraftToProjectUseCase: bindDraftToProjectUseCase,
                            updateDraftNameUseCase: updateDraftNameUseCase,
@@ -246,8 +234,6 @@ public struct DIContainer {
                            fetchProjectMeetingsUseCase: MockMeetingsUseCase(),
                            fetchMeetingDetailUseCase: MockMeetingsUseCase(),
                            deleteMeetingUseCase: MockMeetingsUseCase(),
-                           applyRecordingUploadUseCase: MockRecordingUseCase(),
-                           finishRecordingUploadUseCase: MockRecordingUseCase(),
                            fetchDraftsUseCase: MockDraftUseCases(localStore: recordingLocalStore),
                            bindDraftToProjectUseCase: MockDraftUseCases(localStore: recordingLocalStore),
                            updateDraftNameUseCase: MockDraftUseCases(localStore: recordingLocalStore),

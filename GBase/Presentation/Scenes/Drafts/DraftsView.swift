@@ -1,8 +1,10 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DraftsView: View {
     @Environment(\.diContainer) private var container
     @StateObject private var viewModel = DraftsViewModel()
+    @State private var isImporterPresented = false
 
     var body: some View {
         NavigationStack {
@@ -28,6 +30,15 @@ struct DraftsView: View {
                 }
             }
             .navigationTitle(LocalizedStringKey.draftsTitle.localized)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        isImporterPresented = true
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                }
+            }
             .overlay {
                 if viewModel.isLoading {
                     ProgressView()
@@ -114,6 +125,27 @@ struct DraftsView: View {
                         viewModel.draftToDelete = nil
                     }
                 )
+            }
+            .fileImporter(
+                isPresented: $isImporterPresented,
+                allowedContentTypes: [
+                    UTType.wav,
+                    UTType.mp3,
+                    UTType.mpeg4,
+                    UTType.mpeg4Audio,
+                    UTType(filenameExtension: "webm") ?? .audio
+                ],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    Task {
+                        await viewModel.importAudioFile(url: url)
+                    }
+                case .failure(let error):
+                    print("Import failed: \(error.localizedDescription)")
+                }
             }
         }
     }

@@ -93,6 +93,9 @@
 "recorder.failed_to_start" = "録音を開始できません";
 "recorder.session_busy" = "マイクが他のアプリで使用されています。他のアプリを閉じてから再試行してください";
 "recorder.duration_too_short" = "録音時間が短すぎます（15秒未満）、自動的に削除されました";
+"recorder.import_audio" = "オーディオをインポート";
+"recorder.import_file_too_large" = "インポートファイルサイズは1GBを超えることはできません";
+"recorder.import_file_format_error" = "サポートされていないファイル形式です。.wav, .webm, .mp3, .mp4, .m4a のみがサポートされています";
 
 /* Upload Status */
 "upload_status.pending" = "保留中";

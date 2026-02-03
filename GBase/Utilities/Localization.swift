@@ -146,6 +146,9 @@ enum LocalizedStringKey {
     static let recorderFailedToStart = "recorder.failed_to_start"
     static let recorderSessionBusy = "recorder.session_busy"
     static let recorderDurationTooShort = "recorder.duration_too_short"
+    static let recorderImportAudio = "recorder.import_audio"
+    static let recorderImportFileTooLarge = "recorder.import_file_too_large"
+    static let recorderImportFileFormatError = "recorder.import_file_format_error"
     
     // Upload Status
     static let uploadStatusPending = "upload_status.pending"
