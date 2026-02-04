@@ -1,7 +1,7 @@
 import Foundation
 
 /// 公司 API 服务
-public class CompanyAPIService {
+public final class CompanyAPIService: Sendable {
 
     private let baseURL: String
     private let session: URLSession

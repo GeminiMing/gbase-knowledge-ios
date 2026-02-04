@@ -232,7 +232,7 @@ public final class RecorderViewModel: NSObject, ObservableObject {
 
         do {
             let fileSize = try container.fileStorageService.fileSize(at: fileURL)
-            let duration = try await durationOfFile(at: fileURL)
+            let duration = await durationOfFile(at: fileURL)
 
             // Check if duration is less than 15 seconds
             if duration < 15.0 {
@@ -518,13 +518,27 @@ public final class RecorderViewModel: NSObject, ObservableObject {
         }
     }
 
-    private func durationOfFile(at url: URL) async throws -> Double {
-        let asset = AVURLAsset(url: url)
-        if #available(iOS 16.0, *) {
-            let cmTime = try await asset.load(.duration)
-            return Double(CMTimeGetSeconds(cmTime))
-        } else {
-            return Double(CMTimeGetSeconds(asset.duration))
+    private func durationOfFile(at url: URL) async -> Double {
+        // Try AVURLAsset first
+        do {
+            let asset = AVURLAsset(url: url, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+            if #available(iOS 16.0, *) {
+                let cmTime = try await asset.load(.duration)
+                return Double(CMTimeGetSeconds(cmTime))
+            } else {
+                return Double(CMTimeGetSeconds(asset.duration))
+            }
+        } catch {
+            print("⚠️ [RecorderViewModel] AVURLAsset failed to get duration: \(error). Trying AVAudioPlayer...")
+        }
+        
+        // Fallback to AVAudioPlayer
+        do {
+            let audioPlayer = try AVAudioPlayer(contentsOf: url)
+            return audioPlayer.duration
+        } catch {
+            print("❌ [RecorderViewModel] Failed to get duration: \(error). Defaulting to 0.")
+            return 0
         }
     }
     
@@ -656,7 +670,7 @@ public final class RecorderViewModel: NSObject, ObservableObject {
             
             // 3. Get file info
             let fileSize = try container.fileStorageService.fileSize(at: destinationURL)
-            let duration = try await durationOfFile(at: destinationURL)
+            let duration = await durationOfFile(at: destinationURL)
             
             // 4. Ensure Meeting exists (Non-Draft Mode)
             if !isDraftMode && preparedMeeting == nil {

@@ -35,14 +35,7 @@ public final class RecordingUploadService: RecordingUploadServiceType {
                                 fromType: String = "GBASE",
                                 customName: String? = nil,
                                 progressHandler: @escaping (Double) -> Void) async throws -> UploadApplication {
-        // Use custom name if provided, otherwise use filename
-        let name: String
-        if let customName = customName, !customName.isEmpty {
-            name = customName
-        } else {
-            name = fileURL.deletingPathExtension().lastPathComponent
-        }
-
+        
         let fileData = try Data(contentsOf: fileURL)
         
         // Convert meetingId to Int

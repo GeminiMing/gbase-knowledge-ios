@@ -286,13 +286,25 @@ final class DraftsViewModel: ObservableObject {
             let fileSize = try container.fileStorageService.fileSize(at: destinationURL)
             
             // Calculate duration
-            let asset = AVURLAsset(url: destinationURL)
-            let duration: Double
-            if #available(iOS 16.0, *) {
-                let cmTime = try await asset.load(.duration)
-                duration = Double(CMTimeGetSeconds(cmTime))
-            } else {
-                duration = Double(CMTimeGetSeconds(asset.duration))
+            var duration: Double = 0
+            do {
+                let asset = AVURLAsset(url: destinationURL, options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
+                if #available(iOS 16.0, *) {
+                    let cmTime = try await asset.load(.duration)
+                    duration = Double(CMTimeGetSeconds(cmTime))
+                } else {
+                    duration = Double(CMTimeGetSeconds(asset.duration))
+                }
+            } catch {
+                Logger.info("⚠️ [DraftsViewModel] AVURLAsset failed to get duration: \(error). Trying AVAudioPlayer...")
+                // Fallback to AVAudioPlayer
+                do {
+                    let audioPlayer = try AVAudioPlayer(contentsOf: destinationURL)
+                    duration = audioPlayer.duration
+                } catch {
+                    Logger.error("❌ [DraftsViewModel] Failed to get duration: \(error). Defaulting to 0.")
+                    duration = 0
+                }
             }
             
             // 4. Create Recording object

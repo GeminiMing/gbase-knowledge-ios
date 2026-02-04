@@ -117,7 +117,7 @@ public struct DIContainer {
         let authRepository = RemoteAuthRepository(client: apiClient, authBaseURL: config.environment.authBaseURL)
         let projectRepository = RemoteProjectRepository(client: apiClient)
         let meetingRepository = RemoteMeetingRepository(client: apiClient)
-        let recordingRepository = RemoteRecordingRepository(client: apiClient)
+        // let recordingRepository = RemoteRecordingRepository(client: apiClient)
 
         let loginUseCase = DefaultLoginUseCase(repository: authRepository, tokenStore: tokenStore)
         let refreshUseCase = DefaultRefreshTokenUseCase(repository: authRepository, tokenStore: tokenStore)
@@ -285,7 +285,7 @@ public extension EnvironmentValues {
 }
 
 #if DEBUG
-private final class InMemoryTokenStore: TokenStore {
+private final class InMemoryTokenStore: TokenStore, @unchecked Sendable {
     private var session: AuthSession?
 
     func save(session: AuthSession) async throws {

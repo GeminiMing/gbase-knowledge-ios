@@ -120,29 +120,33 @@ struct ProjectDetailView: View {
 
                 Spacer()
 
-                Button(action: {
-                    viewModel.togglePlayback(recording: recording)
-                }) {
-                    Image(systemName: viewModel.isPlaying(recording: recording) ? "stop.circle.fill" : "play.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.blue)
+                if recording.duration >= 1 {
+                    Button(action: {
+                        viewModel.togglePlayback(recording: recording)
+                    }) {
+                        Image(systemName: viewModel.isPlaying(recording: recording) ? "stop.circle.fill" : "play.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
 
             HStack {
-                Label(viewModel.formatDuration(recording.duration), systemImage: "timer")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if recording.duration >= 1 {
+                    Label(viewModel.formatDuration(recording.duration), systemImage: "timer")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
 
-                Spacer()
+                    Spacer()
+                }
 
                 Label(viewModel.formatFileSize(recording.fileSize), systemImage: "doc")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
                 Spacer()
-
+                
                 // 显示上传状态
                 if recording.uploadStatus == .completed {
                     Label(LocalizedStringKey.uploadStatusCompleted.localized, systemImage: "checkmark.circle.fill")

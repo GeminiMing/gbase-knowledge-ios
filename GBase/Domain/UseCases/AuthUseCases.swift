@@ -92,7 +92,7 @@ public final class DefaultFetchCurrentUserUseCase: FetchCurrentUserUseCase {
     }
 }
 
-public protocol TokenStore {
+public protocol TokenStore: Sendable {
     func save(session: AuthSession) async throws
     func currentSession() async throws -> AuthSession
     func removeSession() async throws

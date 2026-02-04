@@ -25,11 +25,27 @@ struct MeetingDetailView: View {
                             .font(.headline)
 
                         ForEach(detail.recordings) { recording in
-                            VStack(alignment: .leading) {
-                                Text(recording.fileName)
-                                Text("时长: \(Int(recording.duration)) 秒")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(recording.fileName)
+                                    if recording.duration >= 1 {
+                                        Text("时长: \(Int(recording.duration)) 秒")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                if recording.duration >= 1 {
+                                    Button(action: {
+                                        viewModel.togglePlayback(recording: recording)
+                                    }) {
+                                        Image(systemName: viewModel.isPlaying(recording: recording) ? "stop.circle.fill" : "play.circle.fill")
+                                            .font(.system(size: 32))
+                                            .foregroundColor(.blue)
+                                    }
+                                }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()

@@ -201,7 +201,7 @@ struct ProjectRecorderView: View {
             allowedContentTypes: [
                 UTType.wav,
                 UTType.mp3,
-                UTType.mpeg4,
+                UTType.mpeg4Movie,
                 UTType.mpeg4Audio,
                 UTType(filenameExtension: "webm") ?? .audio
             ],

@@ -131,7 +131,7 @@ struct DraftsView: View {
                 allowedContentTypes: [
                     UTType.wav,
                     UTType.mp3,
-                    UTType.mpeg4,
+                    UTType.mpeg4Movie,
                     UTType.mpeg4Audio,
                     UTType(filenameExtension: "webm") ?? .audio
                 ],
@@ -165,26 +165,34 @@ struct DraftsView: View {
 
                 Spacer()
 
-                Button(action: {
-                    viewModel.togglePlayback(recording: draft)
-                }) {
-                    Image(systemName: viewModel.isPlaying(recording: draft) ? "stop.circle.fill" : "play.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.blue)
+                if draft.duration >= 1 {
+                    Button(action: {
+                        viewModel.togglePlayback(recording: draft)
+                    }) {
+                        Image(systemName: viewModel.isPlaying(recording: draft) ? "stop.circle.fill" : "play.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
 
             HStack {
-                Label(viewModel.formatDuration(draft.duration), systemImage: "timer")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if draft.duration >= 1 {
+                    Label(viewModel.formatDuration(draft.duration), systemImage: "timer")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
 
-                Spacer()
+                    Spacer()
+                }
 
                 Label(viewModel.formatFileSize(draft.fileSize), systemImage: "doc")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
+                if draft.duration < 1 {
+                    Spacer()
+                }
             }
 
             HStack {
